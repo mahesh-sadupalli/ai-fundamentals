@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Explorer - Linear & Parabola</title>
+    <!-- 23f3004309@ds.study.iitm.ac.in -->
+    <!--email_off-->23f3004309@ds.study.iitm.ac.in<!--/email_off-->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom, #f8fafc, #ffffff);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        .function-selector {
+            margin-bottom: 2rem;
+        }
+
+        .function-selector label {
+            display: block;
+            font-size: 0.875rem;
+            color: #475569;
+            margin-bottom: 0.25rem;
+        }
+
+        .function-selector select {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 1rem;
+            min-width: 320px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .plot-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+        }
+
+        .controls-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls-container h2 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: #475569;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0f172a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e293b;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .info-card p, .info-card ul {
+            font-size: 0.875rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .info-card ul {
+            padding-left: 1.25rem;
+        }
+
+        footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            padding: 2rem 0;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .function-selector select {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!--email_off-->23f3004309@ds.study.iitm.ac.in<!--/email_off-->
+    <span id="contact-email">23f3004309@ds.study.iitm.ac.in</span>
+    <div class="container">
+        <header>
+            <h1>Function Explorer</h1>
+            <p class="subtitle">Explore mathematical functions interactively. See how parameters affect their shape and properties.</p>
+        </header>
+
+        <div class="function-selector">
+            <label for="function">Function</label>
+            <select id="function">
+                <option value="linear">Linear (y = mx + c)</option>
+                <option value="parabola">Parabola (y = ax² + bx + c)</option>
+                <option value="exponential" disabled>Exponential (coming soon)</option>
+                <option value="log" disabled>Log (coming soon)</option>
+                <option value="sigmoid" disabled>Sigmoid (coming soon)</option>
+                <option value="relu" disabled>ReLU (coming soon)</option>
+                <option value="tanh" disabled>tanh (coming soon)</option>
+                <option value="leakyrelu" disabled>Leaky ReLU (coming soon)</option>
+                <option value="softplus" disabled>Softplus (coming soon)</option>
+                <option value="gelu" disabled>GELU (coming soon)</option>
+            </select>
+        </div>
+
+        <div class="plot-container">
+            <svg id="plot" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <div class="controls-container" id="controls">
+            <!-- Controls will be dynamically inserted here -->
+        </div>
+
+        <div class="info-cards" id="info-cards">
+            <!-- Info cards will be dynamically inserted here -->
+        </div>
+
+        <footer>
+            v2 • Linear and Parabola functions available. More coming soon!
+            <a href="mailto:23f3004309@ds.study.iitm.ac.in">23f3004309@ds.study.iitm.ac.in</a>
+        </footer>
+    </div>
+
+    <script>
+        // Global state management
+        let currentFunction = 'linear';
+        let dragging = null;
+
+        // State for linear function
+        let linearState = {
+            m: 1,
+            b: 0,
+            showTriangle: true,
+            showIntercepts: true,
+            showLipschitz: false,
+            lipschitzPoints: { A: { x: -1, y: -1 }, B: { x: 2, y: 2 } }
+        };
+
+        // State for parabola function
+        let parabolaState = {
+            a: 1,
+            b: 0,
+            c: 0,
+            showVertex: true,
+            showRoots: true,
+            showFocusDirectrix: false,
+            showTangent: false,
+            tangentX: 1
+        };
+
+        // Constants for the coordinate system
+        const width = 720;
+        const height = 440;
+        const margin = { top: 24, right: 24, bottom: 28, left: 40 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+        const xDomain = [-5, 5];
+        const yDomain = [-5, 5];
+
+        // Scale functions to convert between data coordinates and screen coordinates
+        const xScale = (x) => margin.left + ((x - xDomain[0]) / (xDomain[1] - xDomain[0])) * innerW;
+        const yScale = (y) => margin.top + innerH - ((y - yDomain[0]) / (yDomain[1] - yDomain[0])) * innerH;
+        const xUnscale = (px) => xDomain[0] + ((px - margin.left) / innerW) * (xDomain[1] - xDomain[0]);
+        const yUnscale = (py) => yDomain[0] + ((margin.top + innerH - py) / innerH) * (yDomain[1] - yDomain[0]);
+
+        // Helper function to clamp values within a range
+        const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+        // Drawing functions
+        function drawGrid(svg) {
+            const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            // Draw grid lines
+            for (let x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', xScale(x));
+                line.setAttribute('y1', margin.top);
+                line.setAttribute('x2', xScale(x));
+                line.setAttribute('y2', height - margin.bottom);
+                line.setAttribute('stroke', '#e5e7eb');
+                line.setAttribute('stroke-dasharray', '3 3');
+                grid.appendChild(line);
+            }
+            
+            for (let y = Math.ceil(yDomain[0]); y <= Math.floor(yDomain[1]); y++) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', margin.left);
+                line.setAttribute('y1', yScale(y));
+                line.setAttribute('x2', width - margin.right);
+                line.setAttribute('y2', yScale(y));
+                line.setAttribute('stroke', '#e5e7eb');
+                line.setAttribute('stroke-dasharray', '3 3');
+                grid.appendChild(line);
+            }
+
+            // Draw axes
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', margin.left);
+            xAxis.setAttribute('y1', yScale(0));
+            xAxis.setAttribute('x2', width - margin.right);
+            xAxis.setAttribute('y2', yScale(0));
+            xAxis.setAttribute('stroke', '#374151');
+            grid.appendChild(xAxis);
+
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', xScale(0));
+            yAxis.setAttribute('y1', margin.top);
+            yAxis.setAttribute('x2', xScale(0));
+            yAxis.setAttribute('y2', height - margin.bottom);
+            yAxis.setAttribute('stroke', '#374151');
+            grid.appendChild(yAxis);
+
+            // Add tick labels
+            for (let x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
+                if (x === 0) continue;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', xScale(x));
+                text.setAttribute('y', yScale(0) + 18);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#374151');
+                text.setAttribute('font-size', '10');
+                text.textContent = x;
+                grid.appendChild(text);
+            }
+
+            for (let y = Math.ceil(yDomain[0]); y <= Math.floor(yDomain[1]); y++) {
+                if (y === 0) continue;
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', xScale(0) - 10);
+                text.setAttribute('y', yScale(y) + 3);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('fill', '#374151');
+                text.setAttribute('font-size', '10');
+                text.textContent = y;
+                grid.appendChild(text);
+            }
+
+            svg.appendChild(grid);
+        }
+
+        function renderLinear() {
+            const svg = document.getElementById('plot');
+            svg.innerHTML = '';
+            
+            drawGrid(svg);
+
+            const { m, b, showTriangle, showIntercepts, showLipschitz, lipschitzPoints } = linearState;
+
+            // Draw the linear function line
+            const y1 = m * xDomain[0] + b;
+            const y2 = m * xDomain[1] + b;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', xScale(xDomain[0]));
+            line.setAttribute('y1', yScale(clamp(y1, yDomain[0], yDomain[1])));
+            line.setAttribute('x2', xScale(xDomain[1]));
+            line.setAttribute('y2', yScale(clamp(y2, yDomain[0], yDomain[1])));
+            line.setAttribute('stroke', '#4f46e5');
+            line.setAttribute('stroke-width', '3');
+            svg.appendChild(line);
+
+            // Add equation label
+            const eqLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            eqLabel.setAttribute('x', width - margin.right);
+            eqLabel.setAttribute('y', margin.top + 20);
+            eqLabel.setAttribute('text-anchor', 'end');
+            eqLabel.setAttribute('fill', '#1f2937');
+            eqLabel.setAttribute('font-size', '14');
+            eqLabel.textContent = `y = ${m.toFixed(2)}x + ${b.toFixed(2)}`;
+            svg.appendChild(eqLabel);
+
+            // Show intercepts if enabled
+            if (showIntercepts) {
+                // y-intercept
+                if (b >= yDomain[0] && b <= yDomain[1]) {
+                    const yInt = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    yInt.setAttribute('cx', xScale(0));
+                    yInt.setAttribute('cy', yScale(b));
+                    yInt.setAttribute('r', '5');
+                    yInt.setAttribute('fill', '#10b981');
+                    svg.appendChild(yInt);
+                }
+
+                // x-intercept (if m != 0)
+                if (Math.abs(m) > 0.001) {
+                    const xIntValue = -b / m;
+                    if (xIntValue >= xDomain[0] && xIntValue <= xDomain[1]) {
+                        const xInt = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        xInt.setAttribute('cx', xScale(xIntValue));
+                        xInt.setAttribute('cy', yScale(0));
+                        xInt.setAttribute('r', '5');
+                        xInt.setAttribute('fill', '#ef4444');
+                        svg.appendChild(xInt);
+                    }
+                }
+            }
+
+            // Show slope triangle if enabled
+            if (showTriangle) {
+                const x0 = m >= 0 ? -2 : 0.6;
+                const x1 = x0 + 1;
+                const y0 = m * x0 + b;
+                const y1 = m * x1 + b;
+
+                if (y0 >= yDomain[0] && y0 <= yDomain[1] && y1 >= yDomain[0] && y1 <= yDomain[1]) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M${xScale(x0)},${yScale(y0)} L${xScale(x0)},${yScale(y1)} L${xScale(x1)},${yScale(y1)}`);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', '#f59e0b');
+                    path.setAttribute('stroke-width', '2');
+                    svg.appendChild(path);
+
+                    const runLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    runLabel.setAttribute('x', xScale((x0 + x1) / 2));
+                    runLabel.setAttribute('y', yScale(y0) - 6);
+                    runLabel.setAttribute('text-anchor', 'middle');
+                    runLabel.setAttribute('fill', '#d97706');
+                    runLabel.setAttribute('font-size', '10');
+                    runLabel.textContent = 'run = 1';
+                    svg.appendChild(runLabel);
+
+                    const riseLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    riseLabel.setAttribute('x', m >= 0 ? xScale(x1) + 6 : xScale(x0) - 6);
+                    riseLabel.setAttribute('y', yScale((y0 + y1) / 2));
+                    riseLabel.setAttribute('text-anchor', m >= 0 ? 'start' : 'end');
+                    riseLabel.setAttribute('fill', '#d97706');
+                    riseLabel.setAttribute('font-size', '10');
+                    riseLabel.textContent = `rise = ${m.toFixed(2)}`;
+                    svg.appendChild(riseLabel);
+                }
+            }
+        }
+
+        function renderParabola() {
+            const svg = document.getElementById('plot');
+            svg.innerHTML = '';
+            
+            drawGrid(svg);
+
+            const { a, b, c, showVertex, showRoots, showFocusDirectrix, showTangent, tangentX } = parabolaState;
+
+            // Create the parabola path using many small line segments
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            let pathData = '';
+            const numPoints = 200; // More points for smoother curve
+            
+            for (let i = 0; i <= numPoints; i++) {
+                const x = xDomain[0] + (i / numPoints) * (xDomain[1] - xDomain[0]);
+                const y = a * x * x + b * x + c;
+                
+                // Only include points within the visible y-domain
+                if (y >= yDomain[0] && y <= yDomain[1]) {
+                    const screenX = xScale(x);
+                    const screenY = yScale(y);
+                    
+                    if (pathData === '') {
+                        pathData = `M ${screenX} ${screenY}`;
+                    } else {
+                        pathData += ` L ${screenX} ${screenY}`;
+                    }
+                }
+            }
+            
+            path.setAttribute('d', pathData);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#8b5cf6');
+            path.setAttribute('stroke-width', '3');
+            svg.appendChild(path);
+
+            // Add equation label
+            const eqLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            eqLabel.setAttribute('x', width - margin.right);
+            eqLabel.setAttribute('y', margin.top + 20);
+            eqLabel.setAttribute('text-anchor', 'end');
+            eqLabel.setAttribute('fill', '#1f2937');
+            eqLabel.setAttribute('font-size', '14');
+            
+            // Format the equation nicely
+            let equation = 'y = ';
+            if (Math.abs(a) !== 1) equation += `${a.toFixed(2)}`;
+            else if (a === -1) equation += '-';
+            equation += 'x²';
+            if (b !== 0) {
+                equation += b > 0 ? ` + ${b.toFixed(2)}x` : ` - ${Math.abs(b).toFixed(2)}x`;
+            }
+            if (c !== 0) {
+                equation += c > 0 ? ` + ${c.toFixed(2)}` : ` - ${Math.abs(c).toFixed(2)}`;
+            }
+            eqLabel.textContent = equation;
+            svg.appendChild(eqLabel);
+
+            // Show vertex if enabled
+            if (showVertex && a !== 0) {
+                const vertexX = -b / (2 * a);
+                const vertexY = a * vertexX * vertexX + b * vertexX + c;
+                
+                if (vertexX >= xDomain[0] && vertexX <= xDomain[1] && 
+                    vertexY >= yDomain[0] && vertexY <= yDomain[1]) {
+                    
+                    // Draw vertex point
+                    const vertex = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    vertex.setAttribute('cx', xScale(vertexX));
+                    vertex.setAttribute('cy', yScale(vertexY));
+                    vertex.setAttribute('r', '6');
+                    vertex.setAttribute('fill', '#ec4899');
+                    svg.appendChild(vertex);
+                    
+                    // Add vertex label
+                    const vertexLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    vertexLabel.setAttribute('x', xScale(vertexX) + 8);
+                    vertexLabel.setAttribute('y', yScale(vertexY) - 8);
+                    vertexLabel.setAttribute('fill', '#be185d');
+                    vertexLabel.setAttribute('font-size', '11');
+                    vertexLabel.textContent = `Vertex (${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})`;
+                    svg.appendChild(vertexLabel);
+                    
+                    // Draw axis of symmetry (vertical line through vertex)
+                    const axisOfSymmetry = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    axisOfSymmetry.setAttribute('x1', xScale(vertexX));
+                    axisOfSymmetry.setAttribute('y1', margin.top);
+                    axisOfSymmetry.setAttribute('x2', xScale(vertexX));
+                    axisOfSymmetry.setAttribute('y2', height - margin.bottom);
+                    axisOfSymmetry.setAttribute('stroke', '#fbbf24');
+                    axisOfSymmetry.setAttribute('stroke-dasharray', '5 3');
+                    axisOfSymmetry.setAttribute('opacity', '0.5');
+                    svg.appendChild(axisOfSymmetry);
+                }
+            }
+
+            // Show roots if enabled
+            if (showRoots && a !== 0) {
+                const discriminant = b * b - 4 * a * c;
+                
+                if (discriminant >= 0) {
+                    const sqrtDiscriminant = Math.sqrt(discriminant);
+                    const root1 = (-b + sqrtDiscriminant) / (2 * a);
+                    const root2 = (-b - sqrtDiscriminant) / (2 * a);
+                    
+                    // Draw first root
+                    if (root1 >= xDomain[0] && root1 <= xDomain[1]) {
+                        const rootCircle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        rootCircle1.setAttribute('cx', xScale(root1));
+                        rootCircle1.setAttribute('cy', yScale(0));
+                        rootCircle1.setAttribute('r', '5');
+                        rootCircle1.setAttribute('fill', '#ef4444');
+                        svg.appendChild(rootCircle1);
+                        
+                        const rootLabel1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        rootLabel1.setAttribute('x', xScale(root1));
+                        rootLabel1.setAttribute('y', yScale(0) + 20);
+                        rootLabel1.setAttribute('text-anchor', 'middle');
+                        rootLabel1.setAttribute('fill', '#dc2626');
+                        rootLabel1.setAttribute('font-size', '10');
+                        rootLabel1.textContent = `x = ${root1.toFixed(2)}`;
+                        svg.appendChild(rootLabel1);
+                    }
+                    
+                    // Draw second root (if different from first)
+                    if (Math.abs(root1 - root2) > 0.01 && root2 >= xDomain[0] && root2 <= xDomain[1]) {
+                        const rootCircle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        rootCircle2.setAttribute('cx', xScale(root2));
+                        rootCircle2.setAttribute('cy', yScale(0));
+                        rootCircle2.setAttribute('r', '5');
+                        rootCircle2.setAttribute('fill', '#ef4444');
+                        svg.appendChild(rootCircle2);
+                        
+                        const rootLabel2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        rootLabel2.setAttribute('x', xScale(root2));
+                        rootLabel2.setAttribute('y', yScale(0) + 20);
+                        rootLabel2.setAttribute('text-anchor', 'middle');
+                        rootLabel2.setAttribute('fill', '#dc2626');
+                        rootLabel2.setAttribute('font-size', '10');
+                        rootLabel2.textContent = `x = ${root2.toFixed(2)}`;
+                        svg.appendChild(rootLabel2);
+                    }
+                }
+            }
+
+            // Show tangent line if enabled
+            if (showTangent && a !== 0) {
+                // Calculate the derivative at tangentX: f'(x) = 2ax + b
+                const slope = 2 * a * tangentX + b;
+                const yAtTangent = a * tangentX * tangentX + b * tangentX + c;
+                
+                // Calculate tangent line endpoints
+                const tangentY1 = yAtTangent + slope * (xDomain[0] - tangentX);
+                const tangentY2 = yAtTangent + slope * (xDomain[1] - tangentX);
+                
+                // Draw tangent line
+                const tangentLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                tangentLine.setAttribute('x1', xScale(xDomain[0]));
+                tangentLine.setAttribute('y1', yScale(clamp(tangentY1, yDomain[0], yDomain[1])));
+                tangentLine.setAttribute('x2', xScale(xDomain[1]));
+                tangentLine.setAttribute('y2', yScale(clamp(tangentY2, yDomain[0], yDomain[1])));
+                tangentLine.setAttribute('stroke', '#06b6d4');
+                tangentLine.setAttribute('stroke-width', '2');
+                tangentLine.setAttribute('stroke-dasharray', '5 3');
+                svg.appendChild(tangentLine);
+                
+                // Draw point of tangency
+                if (yAtTangent >= yDomain[0] && yAtTangent <= yDomain[1]) {
+                    const tangentPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    tangentPoint.setAttribute('cx', xScale(tangentX));
+                    tangentPoint.setAttribute('cy', yScale(yAtTangent));
+                    tangentPoint.setAttribute('r', '5');
+                    tangentPoint.setAttribute('fill', '#0891b2');
+                    tangentPoint.setAttribute('cursor', 'grab');
+                    tangentPoint.setAttribute('id', 'tangent-point');
+                    svg.appendChild(tangentPoint);
+                    
+                    // Add slope label
+                    const slopeLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    slopeLabel.setAttribute('x', xScale(tangentX) + 10);
+                    slopeLabel.setAttribute('y', yScale(yAtTangent) + 20);
+                    slopeLabel.setAttribute('fill', '#0e7490');
+                    slopeLabel.setAttribute('font-size', '10');
+                    slopeLabel.textContent = `slope = ${slope.toFixed(2)}`;
+                    svg.appendChild(slopeLabel);
+                    
+                    // Make tangent point draggable
+                    tangentPoint.addEventListener('mousedown', (e) => {
+                        dragging = 'tangent';
+                        e.preventDefault();
+                    });
+                }
+            }
+        }
+
+        function render() {
+            if (currentFunction === 'linear') {
+                renderLinear();
+            } else if (currentFunction === 'parabola') {
+                renderParabola();
+            }
+        }
+
+        function updateControls() {
+            const controlsDiv = document.getElementById('controls');
+            controlsDiv.innerHTML = '<h2>Controls</h2>';
+            
+            if (currentFunction === 'linear') {
+                controlsDiv.innerHTML += `
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label>Slope m: <span id="m-value">${linearState.m.toFixed(2)}</span></label>
+                            <input type="range" id="m-slider" min="-3" max="3" step="0.1" value="${linearState.m}">
+                        </div>
+                        <div class="control-group">
+                            <label>Intercept b: <span id="b-value">${linearState.b.toFixed(2)}</span></label>
+                            <input type="range" id="b-slider" min="-3" max="3" step="0.1" value="${linearState.b}">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show-triangle" ${linearState.showTriangle ? 'checked' : ''}>
+                            <label for="show-triangle">Show slope triangle</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show-intercepts" ${linearState.showIntercepts ? 'checked' : ''}>
+                            <label for="show-intercepts">Show intercepts</label>
+                        </div>
+                    </div>
+                    <div class="preset-buttons">
+                        <button class="btn btn-primary" onclick="setLinearPreset(2, 0)">Preset: m=2, b=0</button>
+                        <button class="btn btn-primary" onclick="setLinearPreset(-1, 1.5)">Preset: m=-1, b=1.5</button>
+                        <button class="btn btn-primary" onclick="setLinearPreset(0, 1)">Preset: m=0, b=1</button>
+                        <button class="btn btn-secondary" onclick="resetLinear()">Reset</button>
+                    </div>
+                `;
+                
+                // Add event listeners for linear controls
+                setTimeout(() => {
+                    document.getElementById('m-slider').addEventListener('input', (e) => {
+                        linearState.m = parseFloat(e.target.value);
+                        document.getElementById('m-value').textContent = linearState.m.toFixed(2);
+                        render();
+                    });
+                    
+                    document.getElementById('b-slider').addEventListener('input', (e) => {
+                        linearState.b = parseFloat(e.target.value);
+                        document.getElementById('b-value').textContent = linearState.b.toFixed(2);
+                        render();
+                    });
+                    
+                    document.getElementById('show-triangle').addEventListener('change', (e) => {
+                        linearState.showTriangle = e.target.checked;
+                        render();
+                    });
+                    
+                    document.getElementById('show-intercepts').addEventListener('change', (e) => {
+                        linearState.showIntercepts = e.target.checked;
+                        render();
+                    });
+                }, 0);
+                
+            } else if (currentFunction === 'parabola') {
+                controlsDiv.innerHTML += `
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label>Coefficient a: <span id="a-value">${parabolaState.a.toFixed(2)}</span></label>
+                            <input type="range" id="a-slider" min="-3" max="3" step="0.1" value="${parabolaState.a}">
+                        </div>
+                        <div class="control-group">
+                            <label>Coefficient b: <span id="b-value">${parabolaState.b.toFixed(2)}</span></label>
+                            <input type="range" id="b-slider" min="-3" max="3" step="0.1" value="${parabolaState.b}">
+                        </div>
+                        <div class="control-group">
+                            <label>Coefficient c: <span id="c-value">${parabolaState.c.toFixed(2)}</span></label>
+                            <input type="range" id="c-slider" min="-3" max="3" step="0.1" value="${parabolaState.c}">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show-vertex" ${parabolaState.showVertex ? 'checked' : ''}>
+                            <label for="show-vertex">Show vertex & axis of symmetry</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show-roots" ${parabolaState.showRoots ? 'checked' : ''}>
+                            <label for="show-roots">Show roots (zeros)</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="show-tangent" ${parabolaState.showTangent ? 'checked' : ''}>
+                            <label for="show-tangent">Show tangent line (drag point)</label>
+                        </div>
+                    </div>
+                    <div class="preset-buttons">
+                        <button class="btn btn-primary" onclick="setParabolaPreset(1, 0, -1)">Standard: x² - 1</button>
+                        <button class="btn btn-primary" onclick="setParabolaPreset(-0.5, 2, 1)">Inverted: -0.5x² + 2x + 1</button>
+                        <button class="btn btn-primary" onclick="setParabolaPreset(0.5, -1, 0)">Through origin: 0.5x² - x</button>
+                        <button class="btn btn-primary" onclick="setParabolaPreset(1, 0, 0)">Simple: x²</button>
+                        <button class="btn btn-secondary" onclick="resetParabola()">Reset</button>
+                    </div>
+                `;
+                
+                // Add event listeners for parabola controls
+                setTimeout(() => {
+                    document.getElementById('a-slider').addEventListener('input', (e) => {
+                        parabolaState.a = parseFloat(e.target.value);
+                        document.getElementById('a-value').textContent = parabolaState.a.toFixed(2);
+                        render();
+                    });
+                    
+                    document.getElementById('b-slider').addEventListener('input', (e) => {
+                        parabolaState.b = parseFloat(e.target.value);
+                        document.getElementById('b-value').textContent = parabolaState.b.toFixed(2);
+                        render();
+                    });
+                    
+                    document.getElementById('c-slider').addEventListener('input', (e) => {
+                        parabolaState.c = parseFloat(e.target.value);
+                        document.getElementById('c-value').textContent = parabolaState.c.toFixed(2);
+                        render();
+                    });
+                    
+                    document.getElementById('show-vertex').addEventListener('change', (e) => {
+                        parabolaState.showVertex = e.target.checked;
+                        render();
+                    });
+                    
+                    document.getElementById('show-roots').addEventListener('change', (e) => {
+                        parabolaState.showRoots = e.target.checked;
+                        render();
+                    });
+                    
+                    document.getElementById('show-tangent').addEventListener('change', (e) => {
+                        parabolaState.showTangent = e.target.checked;
+                        render();
+                    });
+                }, 0);
+            }
+        }
+
+        function updateInfoCards() {
+            const infoDiv = document.getElementById('info-cards');
+            infoDiv.innerHTML = '';
+            
+            if (currentFunction === 'linear') {
+                infoDiv.innerHTML = `
+                    <div class="info-card">
+                        <h3>Key Properties</h3>
+                        <ul>
+                            <li>Monotonic if m ≠ 0; constant if m = 0</li>
+                            <li>Continuous, unbounded</li>
+                            <li>Derivative y' = m (constant)</li>
+                            <li>Second derivative = 0 → linear</li>
+                            <li>Rate of change = |m|</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Intercepts</h3>
+                        <p>y-intercept at (0, b). If m ≠ 0, x-intercept at (−b/m, 0).</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>How to Read the Slope</h3>
+                        <p>Triangle shows <em>rise</em> over <em>run</em>. Positive m tilts up to the right; negative m tilts down.</p>
+                    </div>
+                `;
+            } else if (currentFunction === 'parabola') {
+                const a = parabolaState.a;
+                const b = parabolaState.b;
+                const c = parabolaState.c;
+                const discriminant = b * b - 4 * a * c;
+                
+                let rootsInfo = '';
+                if (a === 0) {
+                    rootsInfo = 'Not a parabola (a = 0)';
+                } else if (discriminant > 0) {
+                    rootsInfo = 'Two distinct real roots';
+                } else if (discriminant === 0) {
+                    rootsInfo = 'One repeated real root';
+                } else {
+                    rootsInfo = 'No real roots (complex only)';
+                }
+                
+                let concavity = '';
+                if (a > 0) {
+                    concavity = 'Concave up (opens upward) - has minimum';
+                } else if (a < 0) {
+                    concavity = 'Concave down (opens downward) - has maximum';
+                } else {
+                    concavity = 'Not a parabola (linear function)';
+                }
+                
+                infoDiv.innerHTML = `
+                    <div class="info-card">
+                        <h3>Key Properties</h3>
+                        <ul>
+                            <li>${concavity}</li>
+                            <li>Vertex at x = ${a !== 0 ? (-b/(2*a)).toFixed(2) : 'undefined'}</li>
+                            <li>Axis of symmetry: x = ${a !== 0 ? (-b/(2*a)).toFixed(2) : 'undefined'}</li>
+                            <li>Discriminant Δ = ${discriminant.toFixed(2)}</li>
+                            <li>${rootsInfo}</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Calculus Properties</h3>
+                        <ul>
+                            <li>First derivative: y' = ${(2*a).toFixed(1)}x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(1)}</li>
+                            <li>Second derivative: y'' = ${(2*a).toFixed(1)} (constant)</li>
+                            <li>${a > 0 ? 'Convex (bowl-shaped)' : a < 0 ? 'Concave (dome-shaped)' : 'Linear'}</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3>Understanding Coefficients</h3>
+                        <p><strong>a:</strong> Controls opening direction and width</p>
+                        <p><strong>b:</strong> Shifts vertex horizontally and affects symmetry axis</p>
+                        <p><strong>c:</strong> Vertical shift (y-intercept)</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Preset functions
+        function setLinearPreset(m, b) {
+            linearState.m = m;
+            linearState.b = b;
+            updateControls();
+            render();
+        }
+
+        function resetLinear() {
+            linearState.m = 1;
+            linearState.b = 0;
+            linearState.showTriangle = true;
+            linearState.showIntercepts = true;
+            updateControls();
+            render();
+        }
+
+        function setParabolaPreset(a, b, c) {
+            parabolaState.a = a;
+            parabolaState.b = b;
+            parabolaState.c = c;
+            updateControls();
+            render();
+        }
+
+        function resetParabola() {
+            parabolaState.a = 1;
+            parabolaState.b = 0;
+            parabolaState.c = 0;
+            parabolaState.showVertex = true;
+            parabolaState.showRoots = true;
+            parabolaState.showTangent = false;
+            updateControls();
+            render();
+        }
+
+        // Mouse event handlers for dragging
+        document.addEventListener('mousemove', (e) => {
+            if (!dragging) return;
+            
+            const svg = document.getElementById('plot');
+            const rect = svg.getBoundingClientRect();
+            const x = xUnscale(e.clientX - rect.left);
+            
+            if (dragging === 'tangent') {
+                parabolaState.tangentX = clamp(x, -5, 5);
+                render();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            dragging = null;
+        });
+
+        // Function selector event listener
+        document.getElementById('function').addEventListener('change', (e) => {
+            currentFunction = e.target.value;
+            updateControls();
+            updateInfoCards();
+            render();
+        });
+
+        // Initial render
+        updateControls();
+        updateInfoCards();
+        render();
+    </script>
+</body>
+</html>
