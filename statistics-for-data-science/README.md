@@ -1,8 +1,6 @@
 # Statistics for Data Science
 
-A comprehensive visual guide to statistical foundations essential for data science and machine learning.
-
-> Content created at [Black Forest Labs](https://www.blackforesttlabs.com/)
+> A structured guide to the statistical concepts every data scientist needs to know.
 
 ---
 
@@ -17,252 +15,193 @@ A comprehensive visual guide to statistical foundations essential for data scien
 
 ## Part I: Foundations
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-1.png" width="400"/>
-</p>
-
 ### What is Statistics?
 
-Statistics is the science of collecting, analyzing, and interpreting data to make decisions under uncertainty.
-
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-2.png" width="400"/>
-</p>
+Statistics is the science of collecting, analyzing, and interpreting data to make informed decisions under uncertainty. It provides the mathematical backbone for everything from A/B testing to training deep neural networks.
 
 ### Types of Statistics
 
-| Type | Description |
-|------|-------------|
-| **Descriptive Statistics** | Summarizes and describes data using measures like mean, median, variance |
-| **Inferential Statistics** | Draws conclusions about a population based on sample data and probability |
+**1. Descriptive Statistics**
+- Focuses on summarizing and describing datasets
+- Uses measures such as mean, median, and variance to capture the shape and spread of data
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-3.png" width="400"/>
-</p>
+**2. Inferential Statistics**
+- Goes beyond the observed data to draw conclusions about larger populations
+- Relies on sampling techniques and probability theory to generalize findings
 
 ### Types of Data
 
-**Categorical:**
-- **Nominal** — No order (e.g., blood group, name)
-- **Ordinal** — Ordered categories (e.g., ranking, rating)
+**Categorical**
+- **Nominal:** Categories with no inherent order (e.g., blood group, country)
+- **Ordinal:** Categories with a meaningful ranking (e.g., education level, customer satisfaction rating)
 
-**Numerical:**
-- **Discrete** — Countable values (e.g., number of students, clicks)
-- **Continuous** — Infinite possible values (e.g., height, temperature, time)
+**Numerical**
+- **Discrete:** Countable values with gaps between them (e.g., number of students, number of clicks)
+- **Continuous:** Values that can take any number within a range (e.g., height, temperature, time)
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-4.png" width="400"/>
-</p>
-
-**Temporal Data:**
-- **Time Series** — Observations over time for a single entity (stock prices, daily temperature)
-- **Cross-sectional** — Multiple entities at a single time point (survey data, census)
-- **Panel** — Multiple entities tracked over time (countries' GDP over years)
-
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-5.png" width="400"/>
-</p>
+**Temporal**
+- **Time Series:** Sequential observations for a single entity over time (e.g., stock prices, daily temperature)
+- **Cross-sectional:** A snapshot of multiple entities at one point in time (e.g., a census, a single survey)
+- **Panel:** Multiple entities tracked over multiple time periods (e.g., GDP of several countries measured yearly)
 
 ### Scale of Measurement
 
-| Scale | Properties | Data Type | Examples |
-|-------|-----------|-----------|----------|
-| **Nominal** | Named categories | Categorical | Name, Blood group |
+| Scale | Description | Data Type | Examples |
+|-------|-------------|-----------|----------|
+| **Nominal** | Named categories, no ordering | Categorical | Name, Blood group |
 | **Ordinal** | Named + ordered categories | Categorical | Ranking, Rating |
-| **Interval** | No absolute zero, difference exists | Numerical | Temperature, GPA |
-| **Ratio** | True zero exists, ratios possible | Numerical | Age, Height, Weight |
-
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-6.png" width="400"/>
-</p>
+| **Interval** | Ordered with equal spacing, but no true zero | Numerical | Temperature (°C), GPA |
+| **Ratio** | Interval scale with a true zero, allowing ratios | Numerical | Age, Height, Weight |
 
 ### Central Tendency
 
-#### Mean (μ)
+**Mean (μ)**
 
-The average value of the data.
+The arithmetic average — sum of all values divided by the count.
 
-$$\mu = \frac{1}{n} \sum_{i=1}^{n} x_i$$
+```
+μ = (1/n) Σ xᵢ
+```
 
-**Application:** Mean is used to center features before applying PCA. Centering ensures principal components capture variance correctly.
+*ML Application:* Mean centering is a prerequisite for PCA. Subtracting the mean from each feature ensures that the principal components capture true variance rather than being skewed by offset.
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-7.png" width="400"/>
-</p>
+**Median**
 
-#### Median & Mode
+The middle value when data is sorted. For even-sized datasets, it's the average of the two central values.
 
-- **Median** — Middle value after sorting the data
-- **Mode** — Most frequently occurring value
+**Mode**
 
-**Application:** Since the mean is sensitive to outliers, the median is preferred for robust statistics when outliers exist.
+The most frequently occurring value in a dataset. Particularly useful for categorical data.
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-8.png" width="400"/>
-</p>
+*ML Application:* The mean is sensitive to outliers. When extreme values are present, the median provides a more robust measure of central tendency — this is why robust scaling techniques use the median instead of the mean.
 
 ### Measures of Dispersion
 
-#### Variance
+**Variance**
 
-Measures how far data points spread from the mean.
+Quantifies how far individual data points deviate from the mean, on average.
 
-$$\text{Var}(X) = \frac{1}{n} \sum_{i=1}^{n} (x_i - \mu)^2$$
+```
+Var(X) = (1/n) Σ (xᵢ - μ)²
+```
 
-**Application:** Variance is used in feature selection and helps in finding principal components in PCA.
+*ML Application:* Variance plays a central role in feature selection and PCA. Features with near-zero variance carry almost no information and can often be dropped. In PCA, the algorithm explicitly seeks directions of maximum variance.
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-9.png" width="400"/>
-</p>
+**Standard Deviation (σ)**
 
-#### Standard Deviation (σ)
+The square root of variance, bringing the measure back into the original units of the data.
 
-Square root of variance, expressed in original data units.
+```
+σ = √Var(X)
+```
 
-$$\sigma = \sqrt{\text{Var}(X)}$$
+*ML Application:* Standard deviation is the foundation of Z-score normalization (standardization). By dividing by σ, we rescale features to a common scale — this is exactly what `StandardScaler()` does in scikit-learn.
 
-**Application:** Used in feature scaling, specifically standardization (Z-score normalization), to rescale features so they share a common scale.
+**Interquartile Range (IQR)**
 
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-10.png" width="400"/>
-</p>
+The spread of the middle 50% of the data, calculated as the difference between the 75th percentile (Q3) and the 25th percentile (Q1).
 
-#### Interquartile Range (IQR)
+```
+IQR = Q3 - Q1
+```
 
-Spread of the middle 50% of data.
-
-$$\text{IQR} = Q_3 - Q_1$$
-
-**Outlier Detection using IQR Fences:**
+**Outlier Detection with IQR Fences:**
 - Lower Bound = Q1 − 1.5 × IQR
 - Upper Bound = Q3 + 1.5 × IQR
-- Any data point outside these bounds is considered an **outlier**
+- Any point falling outside these bounds is flagged as an outlier
 
-**Application:** Primary tool for outlier detection and robust data preprocessing because it focuses on the central 50% of data, making it naturally resistant to extreme values.
-
-<p align="center">
-  <img src="images/part1-foundations/Statistics1-12.png" width="400"/>
-</p>
+*ML Application:* IQR-based fencing is one of the most widely used techniques for outlier detection in data preprocessing. Because it depends only on the central 50% of data, it is naturally resistant to extreme values.
 
 ---
 
 ## Part II: IQR, Covariance & Correlation
 
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-1.png" width="400"/>
-</p>
-
-### IQR (Recap)
-
-IQR is a measure of statistical dispersion representing the spread of the middle 50% of a data set, calculated as the difference between the upper quartile Q3 and lower quartile Q1, by ordering data from least to greatest.
-
-$$\text{IQR} = Q_3 - Q_1$$
-
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-3.png" width="400"/>
-</p>
-
 ### Covariance
 
-The covariance measures the relationship between two variables x and y.
+Covariance measures the directional relationship between two variables. It tells us whether two features tend to move together or in opposite directions.
 
-$$\text{Cov}(X, Y) = \frac{1}{n} \sum_{i=1}^{n} (x_i - \mu_X)(y_i - \mu_Y)$$
+```
+Cov(X, Y) = (1/n) Σ (xᵢ - μₓ)(yᵢ - μᵧ)
+```
 
-The sign of the covariance tells a story:
-- **Positive values:** Both variables tend to increase or decrease together
-- **Negative values:** As one variable increases, the other tends to decrease
+- **Positive covariance:** Both variables tend to increase or decrease together
+- **Negative covariance:** As one variable increases, the other tends to decrease
 
-> **Note:** Use denominator (n-1) if you are working with a sample rather than an entire population to ensure the estimate is unbiased.
-
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-5.png" width="400"/>
-</p>
+> **Note:** When working with a sample (rather than the full population), use (n−1) in the denominator to obtain an unbiased estimate — this is known as Bessel's correction.
 
 ### Covariance Matrix
 
-$$\Sigma = \begin{bmatrix} \text{Var}(X_1) & \text{Cov}(X_1, X_2) & \cdots \\ \text{Cov}(X_2, X_1) & \text{Var}(X_2) & \cdots \\ \vdots & \vdots & \ddots \end{bmatrix}$$
+For a dataset with multiple features, the covariance matrix Σ captures all pairwise relationships:
 
-- **Diagonal elements:** Variances of features
-- **Off-diagonal elements:** Covariances between features
-- **Matrix is symmetric**
+```
+Σ = | Var(X₁)      Cov(X₁,X₂)   ...  |
+    | Cov(X₂,X₁)  Var(X₂)       ...  |
+    | ...          ...           ...  |
+```
 
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-6.png" width="400"/>
-</p>
+- **Diagonal:** Variance of each feature
+- **Off-diagonal:** Covariance between each pair of features
+- The matrix is always **symmetric** (Cov(X,Y) = Cov(Y,X))
 
 ### Correlation (Pearson)
 
-Correlation measures the strength and direction of a linear relationship between two variables. It is the normalized form of covariance and is **scale independent**.
+Correlation is the normalized version of covariance — it measures both the strength and direction of a linear relationship, but on a fixed scale from −1 to +1. Unlike covariance, it is **scale independent**.
 
-$$\rho_{X,Y} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}$$
+```
+ρ(X,Y) = Cov(X,Y) / (σₓ · σᵧ)
+```
 
-**Interpretation:**
-| Value | Meaning |
-|-------|---------|
+| Value | Interpretation |
+|-------|----------------|
 | **+1** | Perfect positive linear relationship |
 | **0** | No linear relationship |
 | **-1** | Perfect negative linear relationship |
 
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-8.png" width="400"/>
-</p>
-
 ### Why Covariance & Correlation Matter
 
-**Data Exploration & Insight:**
-1. While covariance tells us the direction of a relationship, **correlation** provides a standardized strength (−1 to +1), making it the primary tool for comparing relationships across different scales
-2. Spot redundant features (high correlation) that can confuse models and inflate the variance of coefficients
-3. Feature interactions
+**Data Exploration & Insight**
+1. Correlation provides a standardized strength measure (−1 to +1), making it the go-to tool for comparing relationships across features with different scales
+2. Highly correlated features are redundant — they inflate coefficient variance and can destabilize models (multicollinearity)
+3. Understanding feature interactions guides feature engineering decisions
 
-**Model Optimization:**
-1. **Covariance matrices** form the mathematical bedrock for PCA, allowing you to transform features into a new coordinate system
-2. Dimensionality reduction
-3. Enhanced stability by reducing noise and redundancy
-
-<p align="center">
-  <img src="images/part2-covariance-correlation/Statistics2-9.png" width="400"/>
-</p>
+**Model Optimization**
+1. The covariance matrix is the mathematical foundation of PCA — eigendecomposition of Σ yields the principal components
+2. Identifying and removing correlated features reduces dimensionality
+3. Removing redundant information improves model stability and reduces overfitting
 
 ---
 
 ## Part III: Permutations, Combinations & Probability
 
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-1.png" width="400"/>
-</p>
-
 ### Permutations
 
-Arrangements of objects where **order matters**. The number of ways to arrange **r** objects chosen from **n** distinct objects.
+Arrangements of objects where **order matters**. Think of it as: how many different sequences can you create?
 
-> ABC ≠ BAC ≠ CAB
+> ABC ≠ BAC ≠ CAB — each arrangement is distinct
 
-**Formulas:**
+**Without repetition:**
+```
+P(n, r) = n! / (n - r)!
+```
 
-| Type | Formula |
-|------|---------|
-| Without repetition | P(n, r) = n! / (n − r)! |
-| With repetition | P = n^r |
+**With repetition (each position has n choices):**
+```
+P = nʳ
+```
 
-**Applications:** Passwords, Rankings, Seating orders
-
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-3.png" width="400"/>
-</p>
+*Applications:* Password generation, ranking systems, seating arrangements
 
 ### Combinations
 
-Selections of objects where **order doesn't matter**. The number of ways to choose **r** objects from **n** distinct objects.
+Selections of objects where **order does not matter**. Think of it as: how many different groups can you form?
 
-> {A, B, C} = {B, A, C} = {C, B, A}
+> {A, B, C} = {B, A, C} = {C, B, A} — all the same group
 
-$$\binom{n}{r} = \frac{n!}{r!(n-r)!}$$
+```
+C(n, r) = n! / [r! × (n - r)!]
+```
 
-**Applications:** Teams, Feature selection, Sampling
-
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-5.png" width="400"/>
-</p>
+*Applications:* Team formation, feature subset selection, sampling
 
 ### Key Facts
 
@@ -275,114 +214,88 @@ $$\binom{n}{r} = \frac{n!}{r!(n-r)!}$$
 - C(n, n) = 1
 - C(n, r) = C(n, n − r)
 
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-8.png" width="400"/>
-</p>
-
 ### Probability
 
-The measure of how likely an event is to occur, expressed as a number between 0 and 1.
+Probability quantifies how likely an event is to occur, expressed as a value between 0 (impossible) and 1 (certain).
 
-$$P(E) = \frac{\text{Number of favorable outcomes}}{\text{Total number of possible outcomes}}$$
+```
+P(E) = Number of favorable outcomes / Total number of possible outcomes
+```
 
-**Applications:** Model confidence, Risk estimation, A/B testing
-
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-6.png" width="400"/>
-</p>
+*Applications:* Model confidence scores, risk estimation, A/B testing, Bayesian inference
 
 ### Probability Rules
 
-| Rule | Formula |
-|------|---------|
-| **Addition (Union)** | P(A ∪ B) = P(A) + P(B) − P(A ∩ B) |
-| **Multiplication (Independent)** | P(A ∩ B) = P(A) × P(B) |
-| **Complement** | P(A^c) = 1 − P(A) |
-
-<p align="center">
-  <img src="images/part3-permutations-combinations-probability/Statistics3-7.png" width="400"/>
-</p>
+| Rule | Formula | When to Use |
+|------|---------|-------------|
+| **Addition (Union)** | P(A ∪ B) = P(A) + P(B) − P(A ∩ B) | Probability of either event occurring |
+| **Multiplication (Independent)** | P(A ∩ B) = P(A) × P(B) | Probability of both events occurring together |
+| **Complement** | P(Aᶜ) = 1 − P(A) | Probability of an event NOT occurring |
 
 ---
 
 ## Part IV: Gaussian/Normal Distribution
 
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-1.png" width="400"/>
-</p>
-
 ### The King of Distributions
 
-Normal distribution is named after German mathematician **Carl Friedrich Gauss**. In 1809, while studying measurement errors in astronomy and land surveying, he formulated the **"Law of Errors"**, demonstrating that for symmetric measurement errors, the most probable value in complex measurements is the **arithmetic mean**.
+The normal distribution is named after the German mathematician **Carl Friedrich Gauss**. In 1809, while studying measurement errors in astronomy and land surveying, he formulated the **Law of Errors** — demonstrating that for symmetric measurement errors, the most probable value is the arithmetic mean.
 
-It wasn't named "normal" because it's ordinary — it's because it was the **standard** pattern that data was expected to follow. It became the benchmark against which other data was measured.
-
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-2.png" width="400"/>
-</p>
+The term "normal" doesn't mean ordinary. Statistician Francis Galton and others used it to describe the **standard** or **ideal** pattern that naturally occurring data tends to follow. It became the benchmark against which all other distributions were compared.
 
 ### Definition
 
-A normal distribution or Gaussian distribution is a type of **continuous probability distribution** for a real-valued random variable defined completely by two parameters: **mean (μ) and variance (σ²)**.
+A normal (Gaussian) distribution is a continuous probability distribution for a real-valued random variable, fully defined by just two parameters — the **mean (μ)** and the **variance (σ²)**.
 
-$$X \sim \mathcal{N}(\mu, \sigma^2)$$
+```
+X ~ N(μ, σ²)
+```
 
 **The Two Parameters:**
-- **μ (Mean):** Controls the location. Shifting mean moves the entire curve left or right
-- **σ (Std Dev):** Controls the scale. A small sigma gives a tall, thin peak; a large sigma gives a flat, wide curve
-- **The Shape:** It is asymptotic — the tails get closer to the x-axis but never touch it
+- **μ (Mean):** Controls the location — shifting μ moves the entire bell curve left or right
+- **σ (Standard Deviation):** Controls the spread — a small σ produces a tall, narrow peak; a large σ produces a flat, wide curve
 
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-5.png" width="400"/>
-</p>
+**Shape Properties:**
+- Perfectly symmetric around the mean
+- Asymptotic — the tails approach but never touch the x-axis
 
 ### The Probability Density Function (PDF)
 
-$$f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}$$
+```
+f(x) = (1 / σ√2π) × e^(-½ ((x - μ) / σ)²)
+```
 
-- **The "Decay" (e^(-x²)):** The exponential part creates the slope. As x moves away from the mean, the exponent becomes a large negative number, pushing the curve down to zero (creating the tails)
-- **The Square (...)²:** Because of the square, it doesn't matter if x is above or below the mean — the result is the same. This creates the **symmetry**
-- **The Scaling Factor (1/σ√2π):** This constant ensures the total area under the curve equals exactly 1 (or 100% probability)
-
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-6.png" width="400"/>
-</p>
+Breaking it down:
+- **The Exponential Decay (e^(−x²)):** As x moves away from the mean, the exponent becomes increasingly negative, pushing the curve toward zero — this creates the characteristic tails
+- **The Square ((...)²):** Whether x is above or below the mean, the result is the same — this is what creates the perfect symmetry
+- **The Scaling Factor (1/σ√2π):** This normalization constant ensures the total area under the curve integrates to exactly 1 (100% probability)
 
 ### The 68-95-99.7 Rule (Empirical Rule)
 
-The "Golden Rule" of the Normal Distribution. If your data is normal, you can predict exactly where it will land:
+The golden rule of the normal distribution — if your data follows a Gaussian, you can predict exactly where values will fall:
 
-| Range | Coverage | Interpretation |
-|-------|----------|----------------|
-| μ ± 1σ | **68%** | Most people are average |
-| μ ± 2σ | **95%** | Uncommon, but normal |
-| μ ± 3σ | **99.7%** | Almost everything fits here |
-
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-8.png" width="400"/>
-</p>
+| Range | Data Coverage | Interpretation |
+|-------|---------------|----------------|
+| μ ± 1σ | **68%** | The majority — most observations are average |
+| μ ± 2σ | **95%** | Uncommon but still within normal range |
+| μ ± 3σ | **99.7%** | Nearly everything — only 0.3% lies beyond |
 
 ### Outliers
 
-Anything outside **±3σ** (the remaining 0.3%) — in data science, we often flag these points as **Outliers or Anomalies**.
-
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-9.png" width="400"/>
-</p>
+Anything falling outside **±3σ** belongs to the remaining 0.3%. In data science, these points are typically flagged as **outliers or anomalies** and warrant further investigation — they could be measurement errors, data entry mistakes, or genuinely rare events.
 
 ### The Standard Normal Distribution (Z-Score)
 
-What if we want to compare two different datasets? We convert them to the **Standard Normal Distribution**. This helps gradient-based algorithms converge faster and lets us compare "apples to oranges" by putting everything on the same scale.
+When comparing values from different datasets (with different means and spreads), we standardize them by converting to the **Standard Normal Distribution** — a special Gaussian with mean = 0 and standard deviation = 1.
 
-**Z Score** is a special case of the Gaussian distribution where:
-- **Mean = 0**
-- **Std Dev = 1**
+```
+Z = (x - μ) / σ
+```
 
-> "Standardization is the universal translator of statistics. By converting raw data into Z-scores, we center everything at 0 with a spread of 1. This is why `StandardScaler()` is one of the most used imports in Python!"
+Standardization serves two critical purposes:
+1. **Fair comparison:** It puts all features on the same scale, letting us compare "apples to oranges"
+2. **Algorithm performance:** Gradient-based optimization algorithms converge significantly faster when features are standardized
 
-<p align="center">
-  <img src="images/part4-gaussian-distribution/Statistics4-10.png" width="400"/>
-</p>
+> This is exactly why `StandardScaler()` is one of the most commonly used preprocessing imports in Python's scikit-learn.
 
 ---
 
