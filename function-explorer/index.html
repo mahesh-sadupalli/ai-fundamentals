@@ -6,117 +6,128 @@
     <title>Function Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Geist+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #08090d;
-            --surface: #0f1117;
-            --surface-raised: #161921;
-            --border: #1e2130;
-            --border-subtle: #14161f;
-            --text: #e2e4ed;
-            --text-muted: #6b7094;
-            --text-dim: #3d4266;
+            --bg: #F5F1EB;
+            --bg-warm: #EDE8E0;
+            --surface: #FFFFFF;
+            --border: #DDD6CB;
+            --border-light: #E8E2D9;
+            --text: #1A1714;
+            --text-secondary: #5C564D;
+            --text-muted: #8A8279;
+            --text-dim: #B5AFA6;
 
-            --linear: #5b8def;
-            --linear-glow: rgba(91, 141, 239, 0.15);
-            --parabola: #a78bfa;
-            --parabola-glow: rgba(167, 139, 250, 0.15);
-            --exponential: #f59e42;
-            --exponential-glow: rgba(245, 158, 66, 0.15);
-            --logarithmic: #22d3ee;
-            --logarithmic-glow: rgba(34, 211, 238, 0.15);
-            --sigmoid: #f43f5e;
-            --sigmoid-glow: rgba(244, 63, 94, 0.15);
-            --relu: #4ade80;
-            --relu-glow: rgba(74, 222, 128, 0.15);
+            --fn-color: #2563EB;
+            --fn-glow: rgba(37, 99, 235, 0.08);
+            --fn-light: rgba(37, 99, 235, 0.12);
 
-            --accent: var(--linear);
-            --accent-glow: var(--linear-glow);
-
-            --radius: 10px;
-            --radius-sm: 6px;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(26, 23, 20, 0.04), 0 4px 12px rgba(26, 23, 20, 0.03);
+            --shadow-hover: 0 2px 8px rgba(26, 23, 20, 0.06), 0 8px 24px rgba(26, 23, 20, 0.05);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg);
             min-height: 100vh;
             color: var(--text);
-            overflow-x: hidden;
         }
 
-        /* Noise overlay */
+        /* Subtle dot pattern */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            opacity: 0.025;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: 128px;
+            opacity: 0.3;
+            background-image: radial-gradient(circle, #C5BFAD 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
             pointer-events: none;
-            z-index: 9999;
+            z-index: 0;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1260px;
             margin: 0 auto;
             padding: 2.5rem 2rem 3rem;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Header */
+        /* ─── Header ─── */
         header {
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
         }
 
-        .header-left h1 {
-            font-family: 'Instrument Serif', serif;
-            font-size: 2.4rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+        header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 2.8rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
             color: var(--text);
             line-height: 1.1;
+            font-optical-sizing: auto;
         }
 
-        .header-left .subtitle {
-            font-size: 0.875rem;
+        header h1 span {
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
             color: var(--text-muted);
-            margin-top: 0.4rem;
-            letter-spacing: 0.02em;
+            margin-top: 0.35rem;
+            letter-spacing: 0.01em;
         }
 
-        /* Function selector as pill tabs */
-        .function-tabs {
+        /* ─── Function selector ─── */
+        .fn-selector {
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .fn-group-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.625rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-dim);
+            writing-mode: horizontal-tb;
+            white-space: nowrap;
+        }
+
+        .fn-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 2rem;
-            padding: 5px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            width: fit-content;
+            gap: 4px;
+        }
+
+        .fn-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+            flex-shrink: 0;
         }
 
         .fn-tab {
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius);
-            font-size: 0.8125rem;
-            font-family: 'Geist Mono', monospace;
+            padding: 0.4rem 0.85rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 400;
             cursor: pointer;
-            border: 1px solid transparent;
+            border: 1.5px solid transparent;
             background: transparent;
             color: var(--text-muted);
             transition: all 0.2s ease;
@@ -124,138 +135,148 @@
         }
 
         .fn-tab:hover {
-            color: var(--text);
-            background: var(--surface-raised);
+            color: var(--text-secondary);
+            background: var(--bg-warm);
         }
 
         .fn-tab.active {
-            background: var(--surface-raised);
-            color: var(--text);
-            border-color: var(--border);
-            box-shadow: 0 0 12px var(--accent-glow);
+            background: var(--fn-light);
+            color: var(--fn-color);
+            border-color: var(--fn-color);
+            font-weight: 500;
         }
 
-        /* Main layout */
+        /* ─── Main layout ─── */
         .main-grid {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: 1fr 320px;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
         }
 
-        /* Plot */
+        /* ─── Plot ─── */
         .plot-container {
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.25rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.25rem 1rem;
+            box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
         }
 
-        .plot-container::before {
-            content: '';
+        .plot-accent {
             position: absolute;
-            top: -1px;
-            left: 20%;
-            right: 20%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0.4;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--fn-color);
+            transition: background 0.3s ease;
         }
 
         svg {
             width: 100%;
             height: auto;
-            max-width: 100%;
             display: block;
         }
 
-        /* Controls panel */
+        /* ─── Controls ─── */
         .controls-container {
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
+            max-height: 480px;
+            overflow-y: auto;
         }
 
+        .controls-container::-webkit-scrollbar { width: 4px; }
+        .controls-container::-webkit-scrollbar-track { background: transparent; }
+        .controls-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
         .controls-container h2 {
-            font-family: 'Geist Mono', monospace;
-            font-size: 0.6875rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--text-muted);
+            color: var(--text-dim);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
         }
 
         .controls-grid {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.85rem;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
 
         .control-group label {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-            font-family: 'Geist Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
             display: flex;
             justify-content: space-between;
+            align-items: baseline;
         }
 
         .control-group label span {
-            color: var(--accent);
+            color: var(--fn-color);
             font-weight: 500;
+            font-size: 0.85rem;
+            transition: color 0.3s;
         }
 
-        /* Custom range slider */
+        /* Range slider */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 4px;
+            height: 5px;
             background: var(--border);
-            border-radius: 2px;
+            border-radius: 3px;
             cursor: pointer;
             outline: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: var(--accent);
-            border: 2px solid var(--surface);
-            box-shadow: 0 0 8px var(--accent-glow);
+            background: var(--surface);
+            border: 2.5px solid var(--fn-color);
             cursor: pointer;
-            transition: transform 0.15s ease;
+            transition: box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--fn-glow);
         }
 
         input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: var(--accent);
-            border: 2px solid var(--surface);
-            box-shadow: 0 0 8px var(--accent-glow);
+            background: var(--surface);
+            border: 2.5px solid var(--fn-color);
             cursor: pointer;
         }
 
-        /* Checkbox toggle */
+        /* Toggle switch */
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -265,87 +286,88 @@
         .checkbox-group input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
-            width: 32px;
-            height: 18px;
+            width: 34px;
+            height: 20px;
             background: var(--border);
-            border-radius: 9px;
+            border-radius: 10px;
             position: relative;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: background 0.25s ease;
             flex-shrink: 0;
         }
 
         .checkbox-group input[type="checkbox"]::after {
             content: '';
             position: absolute;
-            top: 2px;
-            left: 2px;
+            top: 3px;
+            left: 3px;
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: var(--text-muted);
-            transition: all 0.2s ease;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transition: transform 0.25s ease;
         }
 
         .checkbox-group input[type="checkbox"]:checked {
-            background: var(--accent);
+            background: var(--fn-color);
         }
 
         .checkbox-group input[type="checkbox"]:checked::after {
-            left: 16px;
-            background: white;
+            transform: translateX(14px);
         }
 
         .checkbox-group label {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
             cursor: pointer;
+            line-height: 1.3;
         }
 
-        /* Preset buttons */
+        /* Presets */
         .preset-section {
-            border-top: 1px solid var(--border);
-            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+            padding-top: 0.75rem;
         }
 
         .preset-section h3 {
-            font-family: 'Geist Mono', monospace;
-            font-size: 0.625rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--text-dim);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .preset-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
         }
 
         .btn {
-            padding: 0.4rem 0.75rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-family: 'Geist Mono', monospace;
+            padding: 0.35rem 0.7rem;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
             cursor: pointer;
-            border: 1px solid var(--border);
-            background: var(--surface-raised);
-            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
             transition: all 0.2s ease;
         }
 
         .btn:hover {
-            color: var(--text);
-            border-color: var(--accent);
-            box-shadow: 0 0 8px var(--accent-glow);
+            border-color: var(--fn-color);
+            color: var(--fn-color);
+            box-shadow: 0 0 0 3px var(--fn-glow);
         }
 
         .btn-reset {
             border-color: transparent;
-            background: transparent;
             color: var(--text-dim);
+            background: transparent;
         }
 
         .btn-reset:hover {
@@ -354,7 +376,7 @@
             box-shadow: none;
         }
 
-        /* Info cards */
+        /* ─── Info cards ─── */
         .info-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -363,960 +385,851 @@
 
         .info-card {
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
             padding: 1.25rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.3s, transform 0.3s;
+            animation: cardIn 0.3s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--fn-color);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
         }
 
         .info-card:hover {
-            border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-            box-shadow: 0 0 20px var(--accent-glow);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-1px);
         }
 
-        .info-card h3 {
-            font-family: 'Geist Mono', monospace;
-            font-size: 0.6875rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--accent);
-            margin-bottom: 0.75rem;
+        .info-card:hover::before {
+            opacity: 1;
         }
 
-        .info-card p, .info-card ul {
-            font-size: 0.8125rem;
-            color: var(--text-muted);
-            line-height: 1.65;
-        }
+        .info-card:nth-child(2) { animation-delay: 0.05s; }
+        .info-card:nth-child(3) { animation-delay: 0.1s; }
 
-        .info-card ul {
-            padding-left: 1rem;
-        }
-
-        .info-card li {
-            margin-bottom: 0.2rem;
-        }
-
-        .info-card em {
-            color: var(--text);
-            font-style: normal;
-        }
-
-        .info-card strong {
-            color: var(--text);
-            font-weight: 500;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            color: var(--text-dim);
-            font-size: 0.6875rem;
-            font-family: 'Geist Mono', monospace;
-            letter-spacing: 0.04em;
-            padding: 2.5rem 0 1rem;
-            border-top: 1px solid var(--border-subtle);
-            margin-top: 2rem;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .info-card {
-            animation: fadeIn 0.35s ease both;
+        .info-card h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 0.6rem;
+            padding-left: 0.75rem;
         }
-        .info-card:nth-child(2) { animation-delay: 0.06s; }
-        .info-card:nth-child(3) { animation-delay: 0.12s; }
 
-        /* Responsive */
-        @media (max-width: 900px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            .info-cards {
-                grid-template-columns: 1fr;
-            }
+        .info-card p, .info-card ul {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: 0.75rem;
+        }
+
+        .info-card ul {
+            padding-left: 1.75rem;
+        }
+
+        .info-card li { margin-bottom: 0.15rem; }
+        .info-card em { color: var(--fn-color); font-style: italic; font-family: 'Fraunces', serif; }
+        .info-card strong { color: var(--text); font-weight: 600; }
+        .info-card code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            background: var(--bg);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            color: var(--fn-color);
+        }
+
+        /* ─── Footer ─── */
+        footer {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.03em;
+            padding: 2rem 0 0.5rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 960px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .controls-container { max-height: none; }
+            .info-cards { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 640px) {
-            .container {
-                padding: 1.25rem 1rem;
-            }
-            .header-left h1 {
-                font-size: 1.75rem;
-            }
-            .function-tabs {
-                width: 100%;
-            }
-            .fn-tab {
-                flex: 1;
-                text-align: center;
-                padding: 0.4rem 0.5rem;
-                font-size: 0.75rem;
-            }
+            .container { padding: 1.25rem 1rem; }
+            header h1 { font-size: 2rem; }
+            .info-cards { grid-template-columns: 1fr; }
+            .fn-selector { gap: 0.5rem; }
+            .fn-tab { font-size: 0.72rem; padding: 0.3rem 0.6rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="header-left">
-                <h1>Function Explorer</h1>
-                <p class="subtitle">Interactive parameter visualization for fundamental mathematical functions</p>
-            </div>
+            <h1>Function <span>Explorer</span></h1>
+            <p class="subtitle">Interactive parameter visualization for mathematical &amp; activation functions</p>
         </header>
 
-        <div class="function-tabs" id="function-tabs">
-            <button class="fn-tab active" data-fn="linear">y = mx + b</button>
-            <button class="fn-tab" data-fn="parabola">y = ax&sup2;</button>
-            <button class="fn-tab" data-fn="exponential">a&middot;e^(bx)</button>
-            <button class="fn-tab" data-fn="logarithmic">a&middot;ln(x)</button>
-            <button class="fn-tab" data-fn="sigmoid">&sigma;(x)</button>
-            <button class="fn-tab" data-fn="relu">ReLU</button>
+        <div class="fn-selector" id="fn-selector">
+            <span class="fn-group-label">Classic</span>
+            <div class="fn-group">
+                <button class="fn-tab active" data-fn="linear">linear</button>
+                <button class="fn-tab" data-fn="parabola">parabola</button>
+                <button class="fn-tab" data-fn="exponential">exp</button>
+                <button class="fn-tab" data-fn="logarithmic">log</button>
+            </div>
+            <div class="fn-divider"></div>
+            <span class="fn-group-label">Activations</span>
+            <div class="fn-group">
+                <button class="fn-tab" data-fn="sigmoid">sigmoid</button>
+                <button class="fn-tab" data-fn="tanh">tanh</button>
+                <button class="fn-tab" data-fn="relu">ReLU</button>
+                <button class="fn-tab" data-fn="softplus">softplus</button>
+                <button class="fn-tab" data-fn="gelu">GELU</button>
+                <button class="fn-tab" data-fn="swish">swish</button>
+            </div>
         </div>
 
         <div class="main-grid">
             <div class="plot-container">
+                <div class="plot-accent"></div>
                 <svg id="plot" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg"></svg>
             </div>
-
-            <div class="controls-container" id="controls">
-                <!-- Controls dynamically inserted -->
-            </div>
+            <div class="controls-container" id="controls"></div>
         </div>
 
-        <div class="info-cards" id="info-cards">
-            <!-- Info cards dynamically inserted -->
-        </div>
+        <div class="info-cards" id="info-cards"></div>
 
-        <footer>
-            v3 &mdash; 6 functions &middot; linear &middot; parabola &middot; exponential &middot; logarithmic &middot; sigmoid &middot; relu
-        </footer>
+        <footer>v4 &mdash; 10 functions &middot; derivatives &middot; critical points</footer>
     </div>
 
-    <script>
-        // ─── Color map per function ───
-        const fnColors = {
-            linear:      { main: '#5b8def', glow: 'rgba(91,141,239,0.15)',  dim: '#3a5fa0', accent2: '#10b981', accent3: '#ef4444', feature: '#f59e0b' },
-            parabola:    { main: '#a78bfa', glow: 'rgba(167,139,250,0.15)', dim: '#6d5aad', accent2: '#ec4899', accent3: '#ef4444', feature: '#fbbf24' },
-            exponential: { main: '#f59e42', glow: 'rgba(245,158,66,0.15)',  dim: '#a06828', accent2: '#f97316', accent3: '#fbbf24', feature: '#06b6d4' },
-            logarithmic: { main: '#22d3ee', glow: 'rgba(34,211,238,0.15)', dim: '#1a8a9e', accent2: '#06b6d4', accent3: '#3b82f6', feature: '#f43f5e' },
-            sigmoid:     { main: '#f43f5e', glow: 'rgba(244,63,94,0.15)',  dim: '#a02a40', accent2: '#fb923c', accent3: '#a78bfa', feature: '#22d3ee' },
-            relu:        { main: '#4ade80', glow: 'rgba(74,222,128,0.15)', dim: '#2d8a50', accent2: '#22c55e', accent3: '#f59e0b', feature: '#ef4444' }
-        };
+<script>
+// ═══════════════════════════════════════════
+// COLOR MAP
+// ═══════════════════════════════════════════
+const FC = {
+    linear:      { main: '#2563EB', light: 'rgba(37,99,235,0.12)',  glow: 'rgba(37,99,235,0.08)',  deriv: '#93C5FD', feat: '#F59E0B', a2: '#10B981', a3: '#EF4444' },
+    parabola:    { main: '#8B5CF6', light: 'rgba(139,92,246,0.12)', glow: 'rgba(139,92,246,0.08)', deriv: '#C4B5FD', feat: '#FBBF24', a2: '#EC4899', a3: '#EF4444' },
+    exponential: { main: '#EA580C', light: 'rgba(234,88,12,0.12)',  glow: 'rgba(234,88,12,0.08)',  deriv: '#FDBA74', feat: '#06B6D4', a2: '#F97316', a3: '#FBBF24' },
+    logarithmic: { main: '#0891B2', light: 'rgba(8,145,178,0.12)', glow: 'rgba(8,145,178,0.08)', deriv: '#67E8F9', feat: '#F43F5E', a2: '#06B6D4', a3: '#3B82F6' },
+    sigmoid:     { main: '#E11D48', light: 'rgba(225,29,72,0.12)', glow: 'rgba(225,29,72,0.08)', deriv: '#FDA4AF', feat: '#22D3EE', a2: '#FB923C', a3: '#A78BFA' },
+    tanh:        { main: '#7C3AED', light: 'rgba(124,58,237,0.12)', glow: 'rgba(124,58,237,0.08)', deriv: '#C4B5FD', feat: '#34D399', a2: '#818CF8', a3: '#F472B6' },
+    relu:        { main: '#16A34A', light: 'rgba(22,163,74,0.12)', glow: 'rgba(22,163,74,0.08)', deriv: '#86EFAC', feat: '#F59E0B', a2: '#22C55E', a3: '#EF4444' },
+    softplus:    { main: '#0D9488', light: 'rgba(13,148,136,0.12)', glow: 'rgba(13,148,136,0.08)', deriv: '#5EEAD4', feat: '#F97316', a2: '#2DD4BF', a3: '#8B5CF6' },
+    gelu:        { main: '#C026D3', light: 'rgba(192,38,211,0.12)', glow: 'rgba(192,38,211,0.08)', deriv: '#E879F9', feat: '#4ADE80', a2: '#A855F7', a3: '#FB923C' },
+    swish:       { main: '#D97706', light: 'rgba(217,119,6,0.12)', glow: 'rgba(217,119,6,0.08)', deriv: '#FCD34D', feat: '#8B5CF6', a2: '#F59E0B', a3: '#EC4899' }
+};
 
-        // ─── Global state ───
-        let currentFunction = 'linear';
-        let dragging = null;
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentFunction = 'linear';
+let dragging = null;
 
-        let linearState = { m: 1, b: 0, showTriangle: true, showIntercepts: true };
-        let parabolaState = { a: 1, b: 0, c: 0, showVertex: true, showRoots: true, showTangent: false, tangentX: 1 };
-        let exponentialState = { a: 1, b: 1, c: 0, showAsymptote: true, showDerivative: false };
-        let logarithmicState = { a: 1, d: 0, c: 0, showAsymptote: true };
-        let sigmoidState = { k: 1, showMidpoint: true, showAsymptotes: true, showDerivative: false };
-        let reluState = { leak: 0, showKink: true };
+let S = {
+    linear:      { m: 1, b: 0, showTriangle: true, showIntercepts: true, showDerivative: false },
+    parabola:    { a: 1, b: 0, c: 0, showVertex: true, showRoots: true, showTangent: false, tangentX: 1, showDerivative: false },
+    exponential: { a: 1, b: 1, c: 0, showAsymptote: true, showDerivative: false },
+    logarithmic: { a: 1, d: 0, c: 0, showAsymptote: true, showDerivative: false },
+    sigmoid:     { k: 1, showMidpoint: true, showAsymptotes: true, showDerivative: false },
+    tanh:        { k: 1, showAsymptotes: true, showInflection: true, showDerivative: false },
+    relu:        { leak: 0, showKink: true, showDerivative: false },
+    softplus:    { beta: 1, showDerivative: false },
+    gelu:        { showDerivative: false, showCritical: true },
+    swish:       { beta: 1, showDerivative: false, showCritical: true }
+};
 
-        // ─── Coordinate system ───
-        const width = 720, height = 440;
-        const margin = { top: 24, right: 24, bottom: 28, left: 40 };
-        const innerW = width - margin.left - margin.right;
-        const innerH = height - margin.top - margin.bottom;
-        const xDomain = [-5, 5], yDomain = [-5, 5];
+// ═══════════════════════════════════════════
+// COORDINATE SYSTEM
+// ═══════════════════════════════════════════
+const W = 720, H = 440;
+const M = { top: 24, right: 24, bottom: 28, left: 40 };
+const IW = W - M.left - M.right, IH = H - M.top - M.bottom;
+const XD = [-5, 5], YD = [-5, 5];
 
-        const xScale = (x) => margin.left + ((x - xDomain[0]) / (xDomain[1] - xDomain[0])) * innerW;
-        const yScale = (y) => margin.top + innerH - ((y - yDomain[0]) / (yDomain[1] - yDomain[0])) * innerH;
-        const xUnscale = (px) => xDomain[0] + ((px - margin.left) / innerW) * (xDomain[1] - xDomain[0]);
-        const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+const sx = x => M.left + ((x - XD[0]) / (XD[1] - XD[0])) * IW;
+const sy = y => M.top + IH - ((y - YD[0]) / (YD[1] - YD[0])) * IH;
+const ux = px => XD[0] + ((px - M.left) / IW) * (XD[1] - XD[0]);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-        function setAccentCSS(fn) {
-            const c = fnColors[fn];
-            document.documentElement.style.setProperty('--accent', c.main);
-            document.documentElement.style.setProperty('--accent-glow', c.glow);
+function setCSS(fn) {
+    const c = FC[fn];
+    const r = document.documentElement.style;
+    r.setProperty('--fn-color', c.main);
+    r.setProperty('--fn-light', c.light);
+    r.setProperty('--fn-glow', c.glow);
+}
+
+// ═══════════════════════════════════════════
+// SVG HELPERS
+// ═══════════════════════════════════════════
+const ns = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+
+function drawGrid(svg) {
+    const g = document.createElementNS(ns, 'g');
+    for (let x = -5; x <= 5; x++) {
+        g.appendChild(el('line', { x1: sx(x), y1: M.top, x2: sx(x), y2: H - M.bottom, stroke: '#DDD6CB', 'stroke-dasharray': '2 4' }));
+    }
+    for (let y = -5; y <= 5; y++) {
+        g.appendChild(el('line', { x1: M.left, y1: sy(y), x2: W - M.right, y2: sy(y), stroke: '#DDD6CB', 'stroke-dasharray': '2 4' }));
+    }
+    g.appendChild(el('line', { x1: M.left, y1: sy(0), x2: W - M.right, y2: sy(0), stroke: '#8A8279', 'stroke-width': '1' }));
+    g.appendChild(el('line', { x1: sx(0), y1: M.top, x2: sx(0), y2: H - M.bottom, stroke: '#8A8279', 'stroke-width': '1' }));
+    for (let x = -5; x <= 5; x++) {
+        if (x === 0) continue;
+        const t = el('text', { x: sx(x), y: sy(0) + 16, 'text-anchor': 'middle', fill: '#8A8279', 'font-size': '10', 'font-family': 'JetBrains Mono, monospace' });
+        t.textContent = x; g.appendChild(t);
+    }
+    for (let y = -5; y <= 5; y++) {
+        if (y === 0) continue;
+        const t = el('text', { x: sx(0) - 8, y: sy(y) + 3, 'text-anchor': 'end', fill: '#8A8279', 'font-size': '10', 'font-family': 'JetBrains Mono, monospace' });
+        t.textContent = y; g.appendChild(t);
+    }
+    svg.appendChild(g);
+}
+
+function drawCurve(svg, fn, color, sw, dash) {
+    const p = document.createElementNS(ns, 'path');
+    let d = '', on = false;
+    for (let i = 0; i <= 500; i++) {
+        const x = XD[0] + (i / 500) * (XD[1] - XD[0]);
+        const y = fn(x);
+        if (isFinite(y) && y >= YD[0] - 2 && y <= YD[1] + 2) {
+            const px = sx(x), py = sy(clamp(y, YD[0], YD[1]));
+            d += on ? ` L${px} ${py}` : `M${px} ${py}`;
+            on = true;
+        } else { on = false; }
+    }
+    p.setAttribute('d', d); p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', color); p.setAttribute('stroke-width', sw || '2.5');
+    if (dash) p.setAttribute('stroke-dasharray', dash);
+    svg.appendChild(p);
+}
+
+function drawPt(svg, x, y, color, r) {
+    if (x < XD[0] || x > XD[1] || y < YD[0] || y > YD[1]) return null;
+    const c = el('circle', { cx: sx(x), cy: sy(y), r: r || '5', fill: color });
+    svg.appendChild(c); return c;
+}
+
+function drawHL(svg, y, color, dash) {
+    if (y < YD[0] || y > YD[1]) return;
+    svg.appendChild(el('line', { x1: M.left, y1: sy(y), x2: W - M.right, y2: sy(y), stroke: color, 'stroke-dasharray': dash || '5 4', opacity: '0.5' }));
+}
+
+function drawVL(svg, x, color, dash) {
+    if (x < XD[0] || x > XD[1]) return;
+    svg.appendChild(el('line', { x1: sx(x), y1: M.top, x2: sx(x), y2: H - M.bottom, stroke: color, 'stroke-dasharray': dash || '5 4', opacity: '0.5' }));
+}
+
+function eqLabel(svg, text, color) {
+    const t = el('text', { x: W - M.right - 4, y: M.top + 18, 'text-anchor': 'end', fill: color || FC[currentFunction].main, 'font-size': '13', 'font-family': 'JetBrains Mono, monospace', opacity: '0.85' });
+    t.textContent = text; svg.appendChild(t);
+}
+
+function derivLabel(svg) {
+    const t = el('text', { x: W - M.right - 4, y: M.top + 34, 'text-anchor': 'end', fill: FC[currentFunction].deriv, 'font-size': '11', 'font-family': 'JetBrains Mono, monospace', opacity: '0.7' });
+    t.textContent = "f'(x)"; svg.appendChild(t);
+}
+
+// Numerically find critical points (where deriv crosses zero)
+function findCritical(fn, deriv, xMin, xMax) {
+    const pts = [];
+    const n = 1000;
+    const dx = (xMax - xMin) / n;
+    let pD = deriv(xMin);
+    for (let i = 1; i <= n; i++) {
+        const x = xMin + i * dx;
+        const d = deriv(x);
+        if (isFinite(pD) && isFinite(d) && pD * d < 0) {
+            let lo = x - dx, hi = x;
+            for (let j = 0; j < 30; j++) {
+                const mid = (lo + hi) / 2;
+                if (deriv(mid) * deriv(lo) < 0) hi = mid; else lo = mid;
+            }
+            const cx = (lo + hi) / 2, cy = fn(cx);
+            const isMin = deriv(cx - 0.001) < 0 && deriv(cx + 0.001) > 0;
+            pts.push({ x: cx, y: cy, type: isMin ? 'min' : 'max' });
         }
+        pD = d;
+    }
+    return pts;
+}
 
-        // ─── Grid drawing ───
-        function drawGrid(svg) {
-            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-            for (let x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
-                const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                l.setAttribute('x1', xScale(x)); l.setAttribute('y1', margin.top);
-                l.setAttribute('x2', xScale(x)); l.setAttribute('y2', height - margin.bottom);
-                l.setAttribute('stroke', '#1a1d2e'); l.setAttribute('stroke-dasharray', '2 4');
-                g.appendChild(l);
-            }
-            for (let y = Math.ceil(yDomain[0]); y <= Math.floor(yDomain[1]); y++) {
-                const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                l.setAttribute('x1', margin.left); l.setAttribute('y1', yScale(y));
-                l.setAttribute('x2', width - margin.right); l.setAttribute('y2', yScale(y));
-                l.setAttribute('stroke', '#1a1d2e'); l.setAttribute('stroke-dasharray', '2 4');
-                g.appendChild(l);
-            }
-
-            // Axes
-            const xA = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            xA.setAttribute('x1', margin.left); xA.setAttribute('y1', yScale(0));
-            xA.setAttribute('x2', width - margin.right); xA.setAttribute('y2', yScale(0));
-            xA.setAttribute('stroke', '#2d3154'); xA.setAttribute('stroke-width', '1');
-            g.appendChild(xA);
-
-            const yA = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            yA.setAttribute('x1', xScale(0)); yA.setAttribute('y1', margin.top);
-            yA.setAttribute('x2', xScale(0)); yA.setAttribute('y2', height - margin.bottom);
-            yA.setAttribute('stroke', '#2d3154'); yA.setAttribute('stroke-width', '1');
-            g.appendChild(yA);
-
-            // Tick labels
-            for (let x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
-                if (x === 0) continue;
-                const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                t.setAttribute('x', xScale(x)); t.setAttribute('y', yScale(0) + 16);
-                t.setAttribute('text-anchor', 'middle'); t.setAttribute('fill', '#3d4266');
-                t.setAttribute('font-size', '10'); t.setAttribute('font-family', 'Geist Mono, monospace');
-                t.textContent = x; g.appendChild(t);
-            }
-            for (let y = Math.ceil(yDomain[0]); y <= Math.floor(yDomain[1]); y++) {
-                if (y === 0) continue;
-                const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                t.setAttribute('x', xScale(0) - 8); t.setAttribute('y', yScale(y) + 3);
-                t.setAttribute('text-anchor', 'end'); t.setAttribute('fill', '#3d4266');
-                t.setAttribute('font-size', '10'); t.setAttribute('font-family', 'Geist Mono, monospace');
-                t.textContent = y; g.appendChild(t);
-            }
-
-            svg.appendChild(g);
-        }
-
-        function addEquationLabel(svg, text, color) {
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            el.setAttribute('x', width - margin.right - 4);
-            el.setAttribute('y', margin.top + 18);
-            el.setAttribute('text-anchor', 'end');
-            el.setAttribute('fill', color || fnColors[currentFunction].main);
-            el.setAttribute('font-size', '13');
-            el.setAttribute('font-family', 'Geist Mono, monospace');
-            el.setAttribute('opacity', '0.9');
-            el.textContent = text;
-            svg.appendChild(el);
-        }
-
-        // Helper: draw a curve from a math function
-        function drawCurve(svg, fn, color, strokeWidth, dashArray) {
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            let d = '', drawing = false;
-            const n = 400;
-            for (let i = 0; i <= n; i++) {
-                const x = xDomain[0] + (i / n) * (xDomain[1] - xDomain[0]);
-                const y = fn(x);
-                if (isFinite(y) && y >= yDomain[0] - 1 && y <= yDomain[1] + 1) {
-                    const sx = xScale(x), sy = yScale(clamp(y, yDomain[0], yDomain[1]));
-                    if (!drawing) { d += `M ${sx} ${sy}`; drawing = true; }
-                    else d += ` L ${sx} ${sy}`;
-                } else {
-                    drawing = false;
-                }
-            }
-            path.setAttribute('d', d);
-            path.setAttribute('fill', 'none');
-            path.setAttribute('stroke', color);
-            path.setAttribute('stroke-width', strokeWidth || '2.5');
-            if (dashArray) path.setAttribute('stroke-dasharray', dashArray);
-            svg.appendChild(path);
-        }
-
-        function drawPoint(svg, x, y, color, r) {
-            if (x < xDomain[0] || x > xDomain[1] || y < yDomain[0] || y > yDomain[1]) return null;
-            const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            c.setAttribute('cx', xScale(x)); c.setAttribute('cy', yScale(y));
-            c.setAttribute('r', r || '5'); c.setAttribute('fill', color);
-            svg.appendChild(c);
-            return c;
-        }
-
-        function drawHLine(svg, y, color, dash) {
-            if (y < yDomain[0] || y > yDomain[1]) return;
-            const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            l.setAttribute('x1', margin.left); l.setAttribute('y1', yScale(y));
-            l.setAttribute('x2', width - margin.right); l.setAttribute('y2', yScale(y));
-            l.setAttribute('stroke', color); l.setAttribute('stroke-dasharray', dash || '5 4');
-            l.setAttribute('opacity', '0.5');
-            svg.appendChild(l);
-        }
-
-        function drawVLine(svg, x, color, dash) {
-            if (x < xDomain[0] || x > xDomain[1]) return;
-            const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            l.setAttribute('x1', xScale(x)); l.setAttribute('y1', margin.top);
-            l.setAttribute('x2', xScale(x)); l.setAttribute('y2', height - margin.bottom);
-            l.setAttribute('stroke', color); l.setAttribute('stroke-dasharray', dash || '5 4');
-            l.setAttribute('opacity', '0.5');
-            svg.appendChild(l);
-        }
-
-        function drawLabel(svg, x, y, text, color, anchor, fontSize) {
-            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            t.setAttribute('x', xScale(x)); t.setAttribute('y', yScale(y));
-            t.setAttribute('text-anchor', anchor || 'start');
-            t.setAttribute('fill', color); t.setAttribute('font-size', fontSize || '10');
-            t.setAttribute('font-family', 'Geist Mono, monospace');
-            t.textContent = text;
-            svg.appendChild(t);
-        }
-
-        // ─── RENDER: Linear ───
-        function renderLinear() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.linear;
-            const { m, b, showTriangle, showIntercepts } = linearState;
-
-            drawCurve(svg, x => m * x + b, C.main);
-            addEquationLabel(svg, `y = ${m.toFixed(2)}x + ${b.toFixed(2)}`);
-
-            if (showIntercepts) {
-                drawPoint(svg, 0, b, C.accent2, '5');
-                if (Math.abs(m) > 0.001) drawPoint(svg, -b / m, 0, C.accent3, '5');
-            }
-
-            if (showTriangle) {
-                const x0 = m >= 0 ? -2 : 0.6, x1 = x0 + 1;
-                const y0 = m * x0 + b, y1 = m * x1 + b;
-                if (y0 >= yDomain[0] && y0 <= yDomain[1] && y1 >= yDomain[0] && y1 <= yDomain[1]) {
-                    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    p.setAttribute('d', `M${xScale(x0)},${yScale(y0)} L${xScale(x0)},${yScale(y1)} L${xScale(x1)},${yScale(y1)}`);
-                    p.setAttribute('fill', 'none'); p.setAttribute('stroke', C.feature);
-                    p.setAttribute('stroke-width', '2'); svg.appendChild(p);
-
-                    const rl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    rl.setAttribute('x', xScale((x0 + x1) / 2)); rl.setAttribute('y', yScale(y0) - 6);
-                    rl.setAttribute('text-anchor', 'middle'); rl.setAttribute('fill', C.feature);
-                    rl.setAttribute('font-size', '10'); rl.setAttribute('font-family', 'Geist Mono, monospace');
-                    rl.textContent = 'run = 1'; svg.appendChild(rl);
-
-                    const rr = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    rr.setAttribute('x', m >= 0 ? xScale(x1) + 6 : xScale(x0) - 6);
-                    rr.setAttribute('y', yScale((y0 + y1) / 2));
-                    rr.setAttribute('text-anchor', m >= 0 ? 'start' : 'end');
-                    rr.setAttribute('fill', C.feature); rr.setAttribute('font-size', '10');
-                    rr.setAttribute('font-family', 'Geist Mono, monospace');
-                    rr.textContent = `rise = ${m.toFixed(2)}`; svg.appendChild(rr);
-                }
-            }
-        }
-
-        // ─── RENDER: Parabola ───
-        function renderParabola() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.parabola;
-            const { a, b, c, showVertex, showRoots, showTangent, tangentX } = parabolaState;
-
-            drawCurve(svg, x => a * x * x + b * x + c, C.main);
-
-            let eq = 'y = ';
-            if (Math.abs(a) !== 1) eq += `${a.toFixed(2)}`;
-            else if (a === -1) eq += '-';
-            eq += 'x\u00B2';
-            if (b !== 0) eq += b > 0 ? ` + ${b.toFixed(2)}x` : ` - ${Math.abs(b).toFixed(2)}x`;
-            if (c !== 0) eq += c > 0 ? ` + ${c.toFixed(2)}` : ` - ${Math.abs(c).toFixed(2)}`;
-            addEquationLabel(svg, eq);
-
-            if (showVertex && a !== 0) {
-                const vx = -b / (2 * a), vy = a * vx * vx + b * vx + c;
-                drawVLine(svg, vx, C.feature);
-                const pt = drawPoint(svg, vx, vy, C.accent2, '6');
-                if (pt) {
-                    const vl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    vl.setAttribute('x', xScale(vx) + 8); vl.setAttribute('y', yScale(vy) - 8);
-                    vl.setAttribute('fill', C.accent2); vl.setAttribute('font-size', '10');
-                    vl.setAttribute('font-family', 'Geist Mono, monospace');
-                    vl.textContent = `(${vx.toFixed(2)}, ${vy.toFixed(2)})`; svg.appendChild(vl);
-                }
-            }
-
-            if (showRoots && a !== 0) {
-                const disc = b * b - 4 * a * c;
-                if (disc >= 0) {
-                    const sq = Math.sqrt(disc);
-                    const r1 = (-b + sq) / (2 * a), r2 = (-b - sq) / (2 * a);
-                    drawPoint(svg, r1, 0, C.accent3, '5');
-                    if (Math.abs(r1 - r2) > 0.01) drawPoint(svg, r2, 0, C.accent3, '5');
-                }
-            }
-
-            if (showTangent && a !== 0) {
-                const slope = 2 * a * tangentX + b;
-                const yAt = a * tangentX * tangentX + b * tangentX + c;
-                drawCurve(svg, x => yAt + slope * (x - tangentX), '#06b6d4', '2', '5 3');
-                const pt = drawPoint(svg, tangentX, yAt, '#0891b2', '5');
-                if (pt) {
-                    pt.setAttribute('cursor', 'grab'); pt.setAttribute('id', 'tangent-point');
-                    pt.addEventListener('mousedown', (e) => { dragging = 'tangent'; e.preventDefault(); });
-                    const sl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                    sl.setAttribute('x', xScale(tangentX) + 10); sl.setAttribute('y', yScale(yAt) + 18);
-                    sl.setAttribute('fill', '#06b6d4'); sl.setAttribute('font-size', '10');
-                    sl.setAttribute('font-family', 'Geist Mono, monospace');
-                    sl.textContent = `slope = ${slope.toFixed(2)}`; svg.appendChild(sl);
-                }
-            }
-        }
-
-        // ─── RENDER: Exponential ───
-        function renderExponential() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.exponential;
-            const { a, b, c, showAsymptote, showDerivative } = exponentialState;
-
-            drawCurve(svg, x => a * Math.exp(b * x) + c, C.main);
-            addEquationLabel(svg, `y = ${a.toFixed(2)}·e^(${b.toFixed(2)}x) + ${c.toFixed(2)}`);
-
-            if (showAsymptote) drawHLine(svg, c, C.feature);
-
-            if (showDerivative) {
-                drawCurve(svg, x => a * b * Math.exp(b * x), C.accent2, '2', '4 3');
-            }
-        }
-
-        // ─── RENDER: Logarithmic ───
-        function renderLogarithmic() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.logarithmic;
-            const { a, d, c, showAsymptote } = logarithmicState;
-
-            drawCurve(svg, x => {
-                const arg = x + d;
-                if (arg <= 0) return NaN;
-                return a * Math.log(arg) + c;
-            }, C.main);
-            addEquationLabel(svg, `y = ${a.toFixed(2)}·ln(x + ${d.toFixed(2)}) + ${c.toFixed(2)}`);
-
-            if (showAsymptote) drawVLine(svg, -d, C.feature);
-        }
-
-        // ─── RENDER: Sigmoid ───
-        function renderSigmoid() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.sigmoid;
-            const { k, showMidpoint, showAsymptotes, showDerivative } = sigmoidState;
-
-            const sigma = x => 1 / (1 + Math.exp(-k * x));
-            drawCurve(svg, sigma, C.main);
-            addEquationLabel(svg, `\u03C3(x) = 1/(1 + e^(${(-k).toFixed(2)}x))`);
-
-            if (showAsymptotes) {
-                drawHLine(svg, 0, C.dim);
-                drawHLine(svg, 1, C.dim);
-            }
-
-            if (showMidpoint) {
-                drawPoint(svg, 0, 0.5, C.accent2, '5');
-            }
-
-            if (showDerivative) {
-                drawCurve(svg, x => { const s = sigma(x); return k * s * (1 - s); }, C.accent3, '2', '4 3');
-            }
-        }
-
-        // ─── RENDER: ReLU ───
-        function renderReLU() {
-            const svg = document.getElementById('plot');
-            svg.innerHTML = '';
-            drawGrid(svg);
-            const C = fnColors.relu;
-            const { leak, showKink } = reluState;
-
-            drawCurve(svg, x => x >= 0 ? x : leak * x, C.main);
-
-            if (leak === 0) {
-                addEquationLabel(svg, 'f(x) = max(0, x)');
-            } else {
-                addEquationLabel(svg, `f(x) = max(${leak.toFixed(2)}x, x)`);
-            }
-
-            if (showKink) {
-                const pt = drawPoint(svg, 0, 0, C.feature, '6');
-                if (pt) {
-                    // diamond shape via transform
-                    pt.setAttribute('fill', 'none');
-                    pt.setAttribute('stroke', C.feature);
-                    pt.setAttribute('stroke-width', '2');
-                    // Also add a small filled circle
-                    drawPoint(svg, 0, 0, C.feature, '3');
-                }
-            }
-        }
-
-        // ─── Main render ───
-        function render() {
-            const renderers = {
-                linear: renderLinear, parabola: renderParabola,
-                exponential: renderExponential, logarithmic: renderLogarithmic,
-                sigmoid: renderSigmoid, relu: renderReLU
-            };
-            (renderers[currentFunction] || renderLinear)();
-        }
-
-        // ─── Controls ───
-        function updateControls() {
-            const div = document.getElementById('controls');
-            const C = fnColors[currentFunction];
-
-            if (currentFunction === 'linear') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>Slope m <span id="m-value">${linearState.m.toFixed(2)}</span></label>
-                            <input type="range" id="m-slider" min="-3" max="3" step="0.1" value="${linearState.m}">
-                        </div>
-                        <div class="control-group">
-                            <label>Intercept b <span id="b-value">${linearState.b.toFixed(2)}</span></label>
-                            <input type="range" id="b-slider" min="-3" max="3" step="0.1" value="${linearState.b}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-triangle" ${linearState.showTriangle ? 'checked' : ''}>
-                            <label for="show-triangle">Slope triangle</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-intercepts" ${linearState.showIntercepts ? 'checked' : ''}>
-                            <label for="show-intercepts">Intercepts</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setLinearPreset(2, 0)">m=2, b=0</button>
-                            <button class="btn" onclick="setLinearPreset(-1, 1.5)">m=-1, b=1.5</button>
-                            <button class="btn" onclick="setLinearPreset(0, 1)">Horizontal</button>
-                            <button class="btn btn-reset" onclick="resetLinear()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('m-slider').addEventListener('input', e => {
-                        linearState.m = parseFloat(e.target.value);
-                        document.getElementById('m-value').textContent = linearState.m.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('b-slider').addEventListener('input', e => {
-                        linearState.b = parseFloat(e.target.value);
-                        document.getElementById('b-value').textContent = linearState.b.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-triangle').addEventListener('change', e => { linearState.showTriangle = e.target.checked; render(); });
-                    document.getElementById('show-intercepts').addEventListener('change', e => { linearState.showIntercepts = e.target.checked; render(); });
-                }, 0);
-
-            } else if (currentFunction === 'parabola') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>a <span id="a-value">${parabolaState.a.toFixed(2)}</span></label>
-                            <input type="range" id="a-slider" min="-3" max="3" step="0.1" value="${parabolaState.a}">
-                        </div>
-                        <div class="control-group">
-                            <label>b <span id="pb-value">${parabolaState.b.toFixed(2)}</span></label>
-                            <input type="range" id="pb-slider" min="-3" max="3" step="0.1" value="${parabolaState.b}">
-                        </div>
-                        <div class="control-group">
-                            <label>c <span id="c-value">${parabolaState.c.toFixed(2)}</span></label>
-                            <input type="range" id="c-slider" min="-3" max="3" step="0.1" value="${parabolaState.c}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-vertex" ${parabolaState.showVertex ? 'checked' : ''}>
-                            <label for="show-vertex">Vertex & axis</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-roots" ${parabolaState.showRoots ? 'checked' : ''}>
-                            <label for="show-roots">Roots</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-tangent" ${parabolaState.showTangent ? 'checked' : ''}>
-                            <label for="show-tangent">Tangent (drag)</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setParabolaPreset(1,0,-1)">x&sup2; - 1</button>
-                            <button class="btn" onclick="setParabolaPreset(-0.5,2,1)">Inverted</button>
-                            <button class="btn" onclick="setParabolaPreset(1,0,0)">Simple x&sup2;</button>
-                            <button class="btn btn-reset" onclick="resetParabola()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('a-slider').addEventListener('input', e => {
-                        parabolaState.a = parseFloat(e.target.value);
-                        document.getElementById('a-value').textContent = parabolaState.a.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('pb-slider').addEventListener('input', e => {
-                        parabolaState.b = parseFloat(e.target.value);
-                        document.getElementById('pb-value').textContent = parabolaState.b.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('c-slider').addEventListener('input', e => {
-                        parabolaState.c = parseFloat(e.target.value);
-                        document.getElementById('c-value').textContent = parabolaState.c.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-vertex').addEventListener('change', e => { parabolaState.showVertex = e.target.checked; render(); });
-                    document.getElementById('show-roots').addEventListener('change', e => { parabolaState.showRoots = e.target.checked; render(); });
-                    document.getElementById('show-tangent').addEventListener('change', e => { parabolaState.showTangent = e.target.checked; render(); });
-                }, 0);
-
-            } else if (currentFunction === 'exponential') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>Amplitude a <span id="ea-value">${exponentialState.a.toFixed(2)}</span></label>
-                            <input type="range" id="ea-slider" min="-3" max="3" step="0.1" value="${exponentialState.a}">
-                        </div>
-                        <div class="control-group">
-                            <label>Rate b <span id="eb-value">${exponentialState.b.toFixed(2)}</span></label>
-                            <input type="range" id="eb-slider" min="-3" max="3" step="0.1" value="${exponentialState.b}">
-                        </div>
-                        <div class="control-group">
-                            <label>Shift c <span id="ec-value">${exponentialState.c.toFixed(2)}</span></label>
-                            <input type="range" id="ec-slider" min="-3" max="3" step="0.1" value="${exponentialState.c}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-asymptote" ${exponentialState.showAsymptote ? 'checked' : ''}>
-                            <label for="show-asymptote">Asymptote y = c</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-derivative" ${exponentialState.showDerivative ? 'checked' : ''}>
-                            <label for="show-derivative">Derivative</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setExpPreset(1,1,0)">Growth</button>
-                            <button class="btn" onclick="setExpPreset(1,-1,0)">Decay</button>
-                            <button class="btn" onclick="setExpPreset(2,0.5,-1)">Shifted</button>
-                            <button class="btn btn-reset" onclick="resetExponential()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('ea-slider').addEventListener('input', e => {
-                        exponentialState.a = parseFloat(e.target.value);
-                        document.getElementById('ea-value').textContent = exponentialState.a.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('eb-slider').addEventListener('input', e => {
-                        exponentialState.b = parseFloat(e.target.value);
-                        document.getElementById('eb-value').textContent = exponentialState.b.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('ec-slider').addEventListener('input', e => {
-                        exponentialState.c = parseFloat(e.target.value);
-                        document.getElementById('ec-value').textContent = exponentialState.c.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-asymptote').addEventListener('change', e => { exponentialState.showAsymptote = e.target.checked; render(); });
-                    document.getElementById('show-derivative').addEventListener('change', e => { exponentialState.showDerivative = e.target.checked; render(); });
-                }, 0);
-
-            } else if (currentFunction === 'logarithmic') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>Scale a <span id="la-value">${logarithmicState.a.toFixed(2)}</span></label>
-                            <input type="range" id="la-slider" min="-3" max="3" step="0.1" value="${logarithmicState.a}">
-                        </div>
-                        <div class="control-group">
-                            <label>Shift d <span id="ld-value">${logarithmicState.d.toFixed(2)}</span></label>
-                            <input type="range" id="ld-slider" min="-2" max="4" step="0.1" value="${logarithmicState.d}">
-                        </div>
-                        <div class="control-group">
-                            <label>Offset c <span id="lc-value">${logarithmicState.c.toFixed(2)}</span></label>
-                            <input type="range" id="lc-slider" min="-3" max="3" step="0.1" value="${logarithmicState.c}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-asymptote" ${logarithmicState.showAsymptote ? 'checked' : ''}>
-                            <label for="show-asymptote">Asymptote x = -d</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setLogPreset(1,0,0)">ln(x)</button>
-                            <button class="btn" onclick="setLogPreset(1,2,0)">ln(x+2)</button>
-                            <button class="btn" onclick="setLogPreset(2,0,0)">2&middot;ln(x)</button>
-                            <button class="btn btn-reset" onclick="resetLogarithmic()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('la-slider').addEventListener('input', e => {
-                        logarithmicState.a = parseFloat(e.target.value);
-                        document.getElementById('la-value').textContent = logarithmicState.a.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('ld-slider').addEventListener('input', e => {
-                        logarithmicState.d = parseFloat(e.target.value);
-                        document.getElementById('ld-value').textContent = logarithmicState.d.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('lc-slider').addEventListener('input', e => {
-                        logarithmicState.c = parseFloat(e.target.value);
-                        document.getElementById('lc-value').textContent = logarithmicState.c.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-asymptote').addEventListener('change', e => { logarithmicState.showAsymptote = e.target.checked; render(); });
-                }, 0);
-
-            } else if (currentFunction === 'sigmoid') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>Steepness k <span id="sk-value">${sigmoidState.k.toFixed(2)}</span></label>
-                            <input type="range" id="sk-slider" min="-5" max="5" step="0.1" value="${sigmoidState.k}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-midpoint" ${sigmoidState.showMidpoint ? 'checked' : ''}>
-                            <label for="show-midpoint">Midpoint (0, 0.5)</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-asymptotes" ${sigmoidState.showAsymptotes ? 'checked' : ''}>
-                            <label for="show-asymptotes">Asymptotes</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-derivative" ${sigmoidState.showDerivative ? 'checked' : ''}>
-                            <label for="show-derivative">Derivative</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setSigmoidPreset(1)">Standard</button>
-                            <button class="btn" onclick="setSigmoidPreset(5)">Steep</button>
-                            <button class="btn" onclick="setSigmoidPreset(0.5)">Shallow</button>
-                            <button class="btn" onclick="setSigmoidPreset(-1)">Inverted</button>
-                            <button class="btn btn-reset" onclick="resetSigmoid()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('sk-slider').addEventListener('input', e => {
-                        sigmoidState.k = parseFloat(e.target.value);
-                        document.getElementById('sk-value').textContent = sigmoidState.k.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-midpoint').addEventListener('change', e => { sigmoidState.showMidpoint = e.target.checked; render(); });
-                    document.getElementById('show-asymptotes').addEventListener('change', e => { sigmoidState.showAsymptotes = e.target.checked; render(); });
-                    document.getElementById('show-derivative').addEventListener('change', e => { sigmoidState.showDerivative = e.target.checked; render(); });
-                }, 0);
-
-            } else if (currentFunction === 'relu') {
-                div.innerHTML = `
-                    <h2>Parameters</h2>
-                    <div class="controls-grid">
-                        <div class="control-group">
-                            <label>Leak &alpha; <span id="rl-value">${reluState.leak.toFixed(2)}</span></label>
-                            <input type="range" id="rl-slider" min="0" max="0.5" step="0.01" value="${reluState.leak}">
-                        </div>
-                    </div>
-                    <div class="controls-grid">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="show-kink" ${reluState.showKink ? 'checked' : ''}>
-                            <label for="show-kink">Kink at origin</label>
-                        </div>
-                    </div>
-                    <div class="preset-section">
-                        <h3>Presets</h3>
-                        <div class="preset-buttons">
-                            <button class="btn" onclick="setReluPreset(0)">Standard ReLU</button>
-                            <button class="btn" onclick="setReluPreset(0.1)">Leaky (&alpha;=0.1)</button>
-                            <button class="btn" onclick="setReluPreset(0.25)">PReLU (&alpha;=0.25)</button>
-                            <button class="btn btn-reset" onclick="resetReLU()">Reset</button>
-                        </div>
-                    </div>`;
-                setTimeout(() => {
-                    document.getElementById('rl-slider').addEventListener('input', e => {
-                        reluState.leak = parseFloat(e.target.value);
-                        document.getElementById('rl-value').textContent = reluState.leak.toFixed(2);
-                        render();
-                    });
-                    document.getElementById('show-kink').addEventListener('change', e => { reluState.showKink = e.target.checked; render(); });
-                }, 0);
-            }
-        }
-
-        // ─── Info cards ───
-        function updateInfoCards() {
-            const div = document.getElementById('info-cards');
-            div.innerHTML = '';
-
-            if (currentFunction === 'linear') {
-                div.innerHTML = `
-                    <div class="info-card"><h3>Key Properties</h3><ul>
-                        <li>Monotonic if m &ne; 0; constant if m = 0</li>
-                        <li>Continuous, unbounded range</li>
-                        <li>Derivative y&prime; = m (constant)</li>
-                        <li>Rate of change = |m|</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Intercepts</h3>
-                        <p>y-intercept at <strong>(0, b)</strong>. If m &ne; 0, x-intercept at <strong>(&minus;b/m, 0)</strong>.</p>
-                    </div>
-                    <div class="info-card"><h3>Slope Triangle</h3>
-                        <p>Triangle shows <em>rise</em> over <em>run</em>. Positive m tilts up-right; negative tilts down.</p>
-                    </div>`;
-            } else if (currentFunction === 'parabola') {
-                const { a, b, c } = parabolaState;
-                const disc = b * b - 4 * a * c;
-                const rootsInfo = a === 0 ? 'Not a parabola (a=0)' : disc > 0 ? 'Two real roots' : disc === 0 ? 'One repeated root' : 'No real roots';
-                const concavity = a > 0 ? 'Concave up &mdash; minimum' : a < 0 ? 'Concave down &mdash; maximum' : 'Linear';
-                div.innerHTML = `
-                    <div class="info-card"><h3>Key Properties</h3><ul>
-                        <li>${concavity}</li>
-                        <li>Vertex at x = ${a !== 0 ? (-b/(2*a)).toFixed(2) : '?'}</li>
-                        <li>&Delta; = ${disc.toFixed(2)} &rarr; ${rootsInfo}</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Calculus</h3><ul>
-                        <li>y&prime; = ${(2*a).toFixed(1)}x ${b >= 0 ? '+' : '&minus;'} ${Math.abs(b).toFixed(1)}</li>
-                        <li>y&Prime; = ${(2*a).toFixed(1)} (constant)</li>
-                        <li>${a > 0 ? 'Convex' : a < 0 ? 'Concave' : 'Linear'}</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Coefficients</h3>
-                        <p><strong>a</strong> &mdash; opening direction & width</p>
-                        <p><strong>b</strong> &mdash; horizontal vertex shift</p>
-                        <p><strong>c</strong> &mdash; vertical shift (y-intercept)</p>
-                    </div>`;
-            } else if (currentFunction === 'exponential') {
-                const { a, b, c } = exponentialState;
-                const behavior = b > 0 ? 'Exponential growth' : b < 0 ? 'Exponential decay' : 'Constant';
-                div.innerHTML = `
-                    <div class="info-card"><h3>Key Properties</h3><ul>
-                        <li>${behavior} (b ${b >= 0 ? '&gt;' : '&lt;'} 0)</li>
-                        <li>Horizontal asymptote at y = ${c.toFixed(2)}</li>
-                        <li>Range: ${a > 0 ? `(${c.toFixed(1)}, &infin;)` : a < 0 ? `(&minus;&infin;, ${c.toFixed(1)})` : `{${c.toFixed(1)}}`}</li>
-                        <li>Always positive when a &gt; 0, c = 0</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Self-Derivative</h3>
-                        <p>The derivative of e<sup>x</sup> is itself &mdash; the only function with this property. For a&middot;e<sup>bx</sup>, the derivative is <strong>ab&middot;e<sup>bx</sup></strong>.</p>
-                    </div>
-                    <div class="info-card"><h3>Growth / Decay</h3>
-                        <p>b &gt; 0: doubles every ln(2)/b units. b &lt; 0: half-life of ln(2)/|b|. Models population growth, radioactive decay, compound interest.</p>
-                    </div>`;
-            } else if (currentFunction === 'logarithmic') {
-                const { a, d, c } = logarithmicState;
-                div.innerHTML = `
-                    <div class="info-card"><h3>Key Properties</h3><ul>
-                        <li>Inverse of exponential function</li>
-                        <li>Domain: x &gt; ${(-d).toFixed(2)}</li>
-                        <li>Vertical asymptote at x = ${(-d).toFixed(2)}</li>
-                        <li>${a > 0 ? 'Increasing, concave down' : a < 0 ? 'Decreasing, concave up' : 'Constant'}</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Domain Restriction</h3>
-                        <p>ln(x) is only defined for x &gt; 0. Shifting by d extends the domain: ln(x + d) requires x &gt; &minus;d. The curve approaches &minus;&infin; near the asymptote.</p>
-                    </div>
-                    <div class="info-card"><h3>Concavity</h3>
-                        <p>For a &gt; 0: always concave down (y&Prime; &lt; 0). Grows without bound, but ever more slowly. ln(x) grows slower than any positive power x<sup>&epsilon;</sup>.</p>
-                    </div>`;
-            } else if (currentFunction === 'sigmoid') {
-                div.innerHTML = `
-                    <div class="info-card"><h3>Activation Function</h3><ul>
-                        <li>Maps any real number to (0, 1)</li>
-                        <li>Midpoint at (0, 0.5)</li>
-                        <li>Symmetric: &sigma;(&minus;x) = 1 &minus; &sigma;(x)</li>
-                        <li>Steepness k controls transition sharpness</li>
-                    </ul></div>
-                    <div class="info-card"><h3>Output Range [0, 1]</h3>
-                        <p>Horizontal asymptotes at y = 0 and y = 1. Used in logistic regression for probability output and as a neural network activation gate.</p>
-                    </div>
-                    <div class="info-card"><h3>Vanishing Gradient</h3>
-                        <p>Derivative &sigma;&prime; = k&middot;&sigma;(1&minus;&sigma;) peaks at x = 0 with max value k/4. For large |x|, gradient &asymp; 0 &mdash; the <em>vanishing gradient</em> problem that limits deep network training.</p>
-                    </div>`;
-            } else if (currentFunction === 'relu') {
-                div.innerHTML = `
-                    <div class="info-card"><h3>Dead Neuron Problem</h3>
-                        <p>Standard ReLU (&alpha; = 0) outputs exactly 0 for all x &lt; 0. If a neuron's weights shift so inputs are always negative, it stops learning entirely &mdash; a <em>dead neuron</em>. Leaky ReLU (&alpha; &gt; 0) mitigates this.</p>
-                    </div>
-                    <div class="info-card"><h3>Computational Efficiency</h3>
-                        <p>Just a max() operation &mdash; no exponentials or divisions. Orders of magnitude faster than sigmoid/tanh. This simple non-linearity enabled training of very deep networks.</p>
-                    </div>
-                    <div class="info-card"><h3>Non-Saturating</h3>
-                        <p>For x &gt; 0, the gradient is always 1 (or &alpha; for x &lt; 0). No vanishing gradient on the positive side. The kink at origin means the function is <em>not differentiable</em> at x = 0.</p>
-                    </div>`;
-            }
-        }
-
-        // ─── Preset / Reset functions ───
-        function setLinearPreset(m, b) { linearState.m = m; linearState.b = b; updateControls(); render(); }
-        function resetLinear() { linearState = { m: 1, b: 0, showTriangle: true, showIntercepts: true }; updateControls(); render(); }
-
-        function setParabolaPreset(a, b, c) { parabolaState.a = a; parabolaState.b = b; parabolaState.c = c; updateControls(); render(); }
-        function resetParabola() { parabolaState = { a: 1, b: 0, c: 0, showVertex: true, showRoots: true, showTangent: false, tangentX: 1 }; updateControls(); render(); }
-
-        function setExpPreset(a, b, c) { exponentialState.a = a; exponentialState.b = b; exponentialState.c = c; updateControls(); render(); }
-        function resetExponential() { exponentialState = { a: 1, b: 1, c: 0, showAsymptote: true, showDerivative: false }; updateControls(); render(); }
-
-        function setLogPreset(a, d, c) { logarithmicState.a = a; logarithmicState.d = d; logarithmicState.c = c; updateControls(); render(); }
-        function resetLogarithmic() { logarithmicState = { a: 1, d: 0, c: 0, showAsymptote: true }; updateControls(); render(); }
-
-        function setSigmoidPreset(k) { sigmoidState.k = k; updateControls(); render(); }
-        function resetSigmoid() { sigmoidState = { k: 1, showMidpoint: true, showAsymptotes: true, showDerivative: false }; updateControls(); render(); }
-
-        function setReluPreset(leak) { reluState.leak = leak; updateControls(); render(); }
-        function resetReLU() { reluState = { leak: 0, showKink: true }; updateControls(); render(); }
-
-        // ─── Tab switching ───
-        document.querySelectorAll('.fn-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.fn-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentFunction = tab.dataset.fn;
-                setAccentCSS(currentFunction);
-                updateControls();
-                updateInfoCards();
-                render();
-            });
+function drawCriticalPts(svg, pts) {
+    pts.forEach(p => {
+        if (p.x < XD[0] || p.x > XD[1] || p.y < YD[0] || p.y > YD[1]) return;
+        // Diamond marker
+        const s = 7;
+        const cx = sx(p.x), cy = sy(p.y);
+        const diamond = el('polygon', {
+            points: `${cx},${cy-s} ${cx+s},${cy} ${cx},${cy+s} ${cx-s},${cy}`,
+            fill: p.type === 'min' ? '#EF4444' : '#F59E0B',
+            stroke: '#fff', 'stroke-width': '1.5'
         });
-
-        // ─── Dragging ───
-        document.addEventListener('mousemove', (e) => {
-            if (!dragging) return;
-            const svg = document.getElementById('plot');
-            const rect = svg.getBoundingClientRect();
-            const scaleRatio = width / rect.width;
-            const x = xUnscale((e.clientX - rect.left) * scaleRatio);
-            if (dragging === 'tangent') {
-                parabolaState.tangentX = clamp(x, -5, 5);
-                render();
-            }
+        svg.appendChild(diamond);
+        const lbl = el('text', {
+            x: cx + 10, y: cy - 6, fill: p.type === 'min' ? '#DC2626' : '#D97706',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
         });
-        document.addEventListener('mouseup', () => { dragging = null; });
+        lbl.textContent = `${p.type} (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`;
+        svg.appendChild(lbl);
+    });
+}
 
-        // ─── Init ───
-        setAccentCSS('linear');
+// ═══════════════════════════════════════════
+// CONTROL HELPERS
+// ═══════════════════════════════════════════
+function sliderH(id, label, min, max, step, val) {
+    return `<div class="control-group"><label>${label} <span id="${id}-v">${val.toFixed(2)}</span></label><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"></div>`;
+}
+function togH(id, label, checked) {
+    return `<div class="checkbox-group"><input type="checkbox" id="${id}" ${checked ? 'checked' : ''}><label for="${id}">${label}</label></div>`;
+}
+function bindS(id, state, key) {
+    document.getElementById(id).addEventListener('input', e => {
+        state[key] = parseFloat(e.target.value);
+        document.getElementById(id + '-v').textContent = state[key].toFixed(2);
+        render();
+    });
+}
+function bindT(id, state, key) {
+    document.getElementById(id).addEventListener('change', e => { state[key] = e.target.checked; render(); });
+}
+
+// ═══════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════
+function renderLinear() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.linear, s = S.linear;
+    drawCurve(svg, x => s.m * x + s.b, C.main);
+    eqLabel(svg, `y = ${s.m.toFixed(2)}x + ${s.b.toFixed(2)}`);
+    if (s.showDerivative) { drawCurve(svg, () => s.m, C.deriv, '2', '4 3'); derivLabel(svg); }
+    if (s.showIntercepts) {
+        drawPt(svg, 0, s.b, C.a2, '5');
+        if (Math.abs(s.m) > 0.001) drawPt(svg, -s.b / s.m, 0, C.a3, '5');
+    }
+    if (s.showTriangle) {
+        const x0 = s.m >= 0 ? -2 : 0.6, x1 = x0 + 1;
+        const y0 = s.m * x0 + s.b, y1 = s.m * x1 + s.b;
+        if (y0 >= YD[0] && y0 <= YD[1] && y1 >= YD[0] && y1 <= YD[1]) {
+            svg.appendChild(el('path', { d: `M${sx(x0)},${sy(y0)} L${sx(x0)},${sy(y1)} L${sx(x1)},${sy(y1)}`, fill: 'none', stroke: C.feat, 'stroke-width': '2' }));
+            const t1 = el('text', { x: sx((x0+x1)/2), y: sy(y0)-6, 'text-anchor': 'middle', fill: C.feat, 'font-size': '10', 'font-family': 'JetBrains Mono, monospace' }); t1.textContent = 'run=1'; svg.appendChild(t1);
+            const t2 = el('text', { x: s.m >= 0 ? sx(x1)+6 : sx(x0)-6, y: sy((y0+y1)/2), 'text-anchor': s.m >= 0 ? 'start' : 'end', fill: C.feat, 'font-size': '10', 'font-family': 'JetBrains Mono, monospace' }); t2.textContent = `rise=${s.m.toFixed(2)}`; svg.appendChild(t2);
+        }
+    }
+}
+
+function renderParabola() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.parabola, s = S.parabola;
+    const f = x => s.a*x*x + s.b*x + s.c;
+    const fp = x => 2*s.a*x + s.b;
+    drawCurve(svg, f, C.main);
+    let eq = 'y = '; if (Math.abs(s.a)!==1) eq+=s.a.toFixed(2); else if(s.a===-1) eq+='-'; eq+='x\u00B2';
+    if(s.b!==0) eq += s.b>0?` + ${s.b.toFixed(2)}x`:` - ${Math.abs(s.b).toFixed(2)}x`;
+    if(s.c!==0) eq += s.c>0?` + ${s.c.toFixed(2)}`:` - ${Math.abs(s.c).toFixed(2)}`;
+    eqLabel(svg, eq);
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+    if (s.showVertex && s.a !== 0) {
+        const vx = -s.b/(2*s.a), vy = f(vx);
+        drawVL(svg, vx, C.feat);
+        const pt = drawPt(svg, vx, vy, C.a2, '6');
+        if (pt) { const t = el('text', { x: sx(vx)+8, y: sy(vy)-8, fill: C.a2, 'font-size': '10', 'font-family': 'JetBrains Mono, monospace' }); t.textContent = `(${vx.toFixed(2)}, ${vy.toFixed(2)})`; svg.appendChild(t); }
+    }
+    if (s.showRoots && s.a !== 0) {
+        const disc = s.b*s.b - 4*s.a*s.c;
+        if (disc >= 0) {
+            const sq = Math.sqrt(disc);
+            drawPt(svg, (-s.b+sq)/(2*s.a), 0, C.a3, '5');
+            if (disc > 0.01) drawPt(svg, (-s.b-sq)/(2*s.a), 0, C.a3, '5');
+        }
+    }
+    if (s.showTangent && s.a !== 0) {
+        const sl = fp(s.tangentX), yt = f(s.tangentX);
+        drawCurve(svg, x => yt + sl*(x-s.tangentX), '#0891B2', '2', '5 3');
+        const pt = drawPt(svg, s.tangentX, yt, '#0891B2', '5');
+        if (pt) { pt.setAttribute('cursor', 'grab'); pt.addEventListener('mousedown', e => { dragging = 'tangent'; e.preventDefault(); }); }
+    }
+}
+
+function renderExponential() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.exponential, s = S.exponential;
+    const f = x => s.a * Math.exp(s.b * x) + s.c;
+    const fp = x => s.a * s.b * Math.exp(s.b * x);
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, `y = ${s.a.toFixed(2)}\u00B7e^(${s.b.toFixed(2)}x) + ${s.c.toFixed(2)}`);
+    if (s.showAsymptote) drawHL(svg, s.c, C.feat);
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+}
+
+function renderLogarithmic() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.logarithmic, s = S.logarithmic;
+    const f = x => { const a = x + s.d; return a > 0 ? s.a * Math.log(a) + s.c : NaN; };
+    const fp = x => { const a = x + s.d; return a > 0 ? s.a / a : NaN; };
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, `y = ${s.a.toFixed(2)}\u00B7ln(x + ${s.d.toFixed(2)}) + ${s.c.toFixed(2)}`);
+    if (s.showAsymptote) drawVL(svg, -s.d, C.feat);
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+}
+
+function renderSigmoid() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.sigmoid, s = S.sigmoid;
+    const sigma = x => 1 / (1 + Math.exp(-s.k * x));
+    const fp = x => { const v = sigma(x); return s.k * v * (1 - v); };
+    drawCurve(svg, sigma, C.main);
+    eqLabel(svg, `\u03C3(x) = 1/(1 + e^(${(-s.k).toFixed(2)}x))`);
+    if (s.showAsymptotes) { drawHL(svg, 0, C.feat); drawHL(svg, 1, C.feat); }
+    if (s.showMidpoint) drawPt(svg, 0, 0.5, C.a2, '5');
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+}
+
+function renderTanh() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.tanh, s = S.tanh;
+    const f = x => Math.tanh(s.k * x);
+    const fp = x => { const t = Math.tanh(s.k * x); return s.k * (1 - t * t); };
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, `tanh(${s.k.toFixed(2)}x)`);
+    if (s.showAsymptotes) { drawHL(svg, -1, C.feat); drawHL(svg, 1, C.feat); }
+    if (s.showInflection) drawPt(svg, 0, 0, C.a2, '5');
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+}
+
+function renderReLU() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.relu, s = S.relu;
+    const f = x => x >= 0 ? x : s.leak * x;
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, s.leak === 0 ? 'f(x) = max(0, x)' : `f(x) = max(${s.leak.toFixed(2)}x, x)`);
+    if (s.showDerivative) {
+        // Draw step derivative: leak for x<0, 1 for x>0
+        drawCurve(svg, x => x < -0.01 ? s.leak : x > 0.01 ? 1 : NaN, C.deriv, '2', '4 3');
+        derivLabel(svg);
+    }
+    if (s.showKink) {
+        svg.appendChild(el('circle', { cx: sx(0), cy: sy(0), r: '7', fill: 'none', stroke: C.feat, 'stroke-width': '2' }));
+        drawPt(svg, 0, 0, C.feat, '3');
+    }
+}
+
+function renderSoftplus() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.softplus, s = S.softplus;
+    const f = x => Math.log(1 + Math.exp(s.beta * x)) / s.beta;
+    const fp = x => 1 / (1 + Math.exp(-s.beta * x)); // sigmoid(beta*x)
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, s.beta === 1 ? 'f(x) = ln(1 + e^x)' : `f(x) = ln(1 + e^(${s.beta.toFixed(2)}x))/${s.beta.toFixed(2)}`);
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+}
+
+function renderGELU() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.gelu, s = S.gelu;
+    const c1 = Math.sqrt(2 / Math.PI);
+    const f = x => 0.5 * x * (1 + Math.tanh(c1 * (x + 0.044715 * x*x*x)));
+    const fp = x => {
+        const u = c1 * (x + 0.044715 * x*x*x);
+        const th = Math.tanh(u);
+        const du = c1 * (1 + 3 * 0.044715 * x*x);
+        return 0.5 * (1 + th) + 0.5 * x * (1 - th*th) * du;
+    };
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, 'GELU(x) = x\u00B7\u03A6(x)');
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+    if (s.showCritical) {
+        const pts = findCritical(f, fp, -3, 0);
+        drawCriticalPts(svg, pts);
+    }
+}
+
+function renderSwish() {
+    const svg = document.getElementById('plot'); svg.innerHTML = ''; drawGrid(svg);
+    const C = FC.swish, s = S.swish;
+    const sig = x => 1 / (1 + Math.exp(-s.beta * x));
+    const f = x => x * sig(x);
+    const fp = x => { const sv = sig(x); return sv + s.beta * x * sv * (1 - sv); };
+    drawCurve(svg, f, C.main);
+    eqLabel(svg, s.beta === 1 ? 'f(x) = x\u00B7\u03C3(x)' : `f(x) = x\u00B7\u03C3(${s.beta.toFixed(2)}x)`);
+    if (s.showDerivative) { drawCurve(svg, fp, C.deriv, '2', '4 3'); derivLabel(svg); }
+    if (s.showCritical) {
+        const pts = findCritical(f, fp, -4, 0);
+        drawCriticalPts(svg, pts);
+    }
+}
+
+// ═══════════════════════════════════════════
+// RENDER DISPATCH
+// ═══════════════════════════════════════════
+const renderers = { linear: renderLinear, parabola: renderParabola, exponential: renderExponential, logarithmic: renderLogarithmic, sigmoid: renderSigmoid, tanh: renderTanh, relu: renderReLU, softplus: renderSoftplus, gelu: renderGELU, swish: renderSwish };
+function render() { (renderers[currentFunction] || renderLinear)(); }
+
+// ═══════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════
+function updateControls() {
+    const d = document.getElementById('controls');
+    const s = S[currentFunction];
+
+    if (currentFunction === 'linear') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('lm','Slope m',-3,3,0.1,s.m)}${sliderH('lb','Intercept b',-3,3,0.1,s.b)}
+        </div><div class="controls-grid">
+            ${togH('lt','Slope triangle',s.showTriangle)}${togH('li','Intercepts',s.showIntercepts)}${togH('ld','Derivative f\u2032(x) = m',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('linear',{m:2,b:0})">m=2</button>
+            <button class="btn" onclick="pre('linear',{m:-1,b:1.5})">m=-1</button>
+            <button class="btn" onclick="pre('linear',{m:0,b:1})">Flat</button>
+            <button class="btn btn-reset" onclick="rst('linear',{m:1,b:0,showTriangle:true,showIntercepts:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('lm',s,'m'); bindS('lb',s,'b'); bindT('lt',s,'showTriangle'); bindT('li',s,'showIntercepts'); bindT('ld',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'parabola') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('pa','a',-3,3,0.1,s.a)}${sliderH('pb','b',-3,3,0.1,s.b)}${sliderH('pc','c',-3,3,0.1,s.c)}
+        </div><div class="controls-grid">
+            ${togH('pv','Vertex & axis',s.showVertex)}${togH('pr','Roots',s.showRoots)}${togH('pt','Tangent (drag)',s.showTangent)}${togH('pd','Derivative f\u2032(x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('parabola',{a:1,b:0,c:-1})">x\u00B2-1</button>
+            <button class="btn" onclick="pre('parabola',{a:-0.5,b:2,c:1})">Inverted</button>
+            <button class="btn" onclick="pre('parabola',{a:1,b:0,c:0})">x\u00B2</button>
+            <button class="btn btn-reset" onclick="rst('parabola',{a:1,b:0,c:0,showVertex:true,showRoots:true,showTangent:false,tangentX:1,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('pa',s,'a'); bindS('pb',s,'b'); bindS('pc',s,'c'); bindT('pv',s,'showVertex'); bindT('pr',s,'showRoots'); bindT('pt',s,'showTangent'); bindT('pd',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'exponential') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('ea','Amplitude a',-3,3,0.1,s.a)}${sliderH('eb','Rate b',-3,3,0.1,s.b)}${sliderH('ec','Shift c',-3,3,0.1,s.c)}
+        </div><div class="controls-grid">
+            ${togH('eas','Asymptote y=c',s.showAsymptote)}${togH('ed','Derivative f\u2032(x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('exponential',{a:1,b:1,c:0})">Growth</button>
+            <button class="btn" onclick="pre('exponential',{a:1,b:-1,c:0})">Decay</button>
+            <button class="btn" onclick="pre('exponential',{a:2,b:0.5,c:-1})">Shifted</button>
+            <button class="btn btn-reset" onclick="rst('exponential',{a:1,b:1,c:0,showAsymptote:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('ea',s,'a'); bindS('eb',s,'b'); bindS('ec',s,'c'); bindT('eas',s,'showAsymptote'); bindT('ed',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'logarithmic') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('la','Scale a',-3,3,0.1,s.a)}${sliderH('ld2','Shift d',-2,4,0.1,s.d)}${sliderH('lc','Offset c',-3,3,0.1,s.c)}
+        </div><div class="controls-grid">
+            ${togH('las','Asymptote x=-d',s.showAsymptote)}${togH('ldr','Derivative f\u2032(x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('logarithmic',{a:1,d:0,c:0})">ln(x)</button>
+            <button class="btn" onclick="pre('logarithmic',{a:1,d:2,c:0})">ln(x+2)</button>
+            <button class="btn" onclick="pre('logarithmic',{a:2,d:0,c:0})">2\u00B7ln(x)</button>
+            <button class="btn btn-reset" onclick="rst('logarithmic',{a:1,d:0,c:0,showAsymptote:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('la',s,'a'); bindS('ld2',s,'d'); bindS('lc',s,'c'); bindT('las',s,'showAsymptote'); bindT('ldr',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'sigmoid') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('sk','Steepness k',-5,5,0.1,s.k)}
+        </div><div class="controls-grid">
+            ${togH('sm','Midpoint (0, 0.5)',s.showMidpoint)}${togH('sa','Asymptotes',s.showAsymptotes)}${togH('sd','Derivative \u03C3\u2032(x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('sigmoid',{k:1})">Standard</button>
+            <button class="btn" onclick="pre('sigmoid',{k:5})">Steep</button>
+            <button class="btn" onclick="pre('sigmoid',{k:0.5})">Shallow</button>
+            <button class="btn" onclick="pre('sigmoid',{k:-1})">Inverted</button>
+            <button class="btn btn-reset" onclick="rst('sigmoid',{k:1,showMidpoint:true,showAsymptotes:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('sk',s,'k'); bindT('sm',s,'showMidpoint'); bindT('sa',s,'showAsymptotes'); bindT('sd',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'tanh') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('tk','Steepness k',-5,5,0.1,s.k)}
+        </div><div class="controls-grid">
+            ${togH('ta','Asymptotes \u00B11',s.showAsymptotes)}${togH('ti','Inflection at origin',s.showInflection)}${togH('td','Derivative sech\u00B2(kx)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('tanh',{k:1})">Standard</button>
+            <button class="btn" onclick="pre('tanh',{k:3})">Steep</button>
+            <button class="btn" onclick="pre('tanh',{k:0.5})">Shallow</button>
+            <button class="btn" onclick="pre('tanh',{k:-1})">Inverted</button>
+            <button class="btn btn-reset" onclick="rst('tanh',{k:1,showAsymptotes:true,showInflection:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('tk',s,'k'); bindT('ta',s,'showAsymptotes'); bindT('ti',s,'showInflection'); bindT('td',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'relu') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('rl','Leak \u03B1',0,0.5,0.01,s.leak)}
+        </div><div class="controls-grid">
+            ${togH('rk','Kink at origin',s.showKink)}${togH('rd','Derivative f\u2032(x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('relu',{leak:0})">Standard</button>
+            <button class="btn" onclick="pre('relu',{leak:0.1})">Leaky 0.1</button>
+            <button class="btn" onclick="pre('relu',{leak:0.25})">PReLU 0.25</button>
+            <button class="btn btn-reset" onclick="rst('relu',{leak:0,showKink:true,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('rl',s,'leak'); bindT('rk',s,'showKink'); bindT('rd',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'softplus') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('sb','Sharpness \u03B2',0.5,5,0.1,s.beta)}
+        </div><div class="controls-grid">
+            ${togH('sd','Derivative \u03C3(\u03B2x)',s.showDerivative)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('softplus',{beta:1})">Standard</button>
+            <button class="btn" onclick="pre('softplus',{beta:3})">Sharp</button>
+            <button class="btn" onclick="pre('softplus',{beta:0.5})">Smooth</button>
+            <button class="btn btn-reset" onclick="rst('softplus',{beta:1,showDerivative:false})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('sb',s,'beta'); bindT('sd',s,'showDerivative'); }, 0);
+
+    } else if (currentFunction === 'gelu') {
+        d.innerHTML = `<h2>Parameters</h2>
+        <div class="controls-grid" style="padding:0.5rem 0">
+            <p style="font-size:0.8rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace">GELU has no adjustable parameters.<br>GELU(x) = x \u00B7 \u03A6(x)</p>
+        </div><div class="controls-grid">
+            ${togH('gd','Derivative f\u2032(x)',s.showDerivative)}${togH('gc','Critical point (local min)',s.showCritical)}
+        </div><div class="preset-section"><h3>Actions</h3><div class="preset-buttons">
+            <button class="btn btn-reset" onclick="rst('gelu',{showDerivative:false,showCritical:true})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindT('gd',s,'showDerivative'); bindT('gc',s,'showCritical'); }, 0);
+
+    } else if (currentFunction === 'swish') {
+        d.innerHTML = `<h2>Parameters</h2><div class="controls-grid">
+            ${sliderH('wb','Steepness \u03B2',0.1,5,0.1,s.beta)}
+        </div><div class="controls-grid">
+            ${togH('wd','Derivative f\u2032(x)',s.showDerivative)}${togH('wc','Critical point',s.showCritical)}
+        </div><div class="preset-section"><h3>Presets</h3><div class="preset-buttons">
+            <button class="btn" onclick="pre('swish',{beta:1})">Standard</button>
+            <button class="btn" onclick="pre('swish',{beta:3})">Sharp</button>
+            <button class="btn" onclick="pre('swish',{beta:0.5})">Smooth</button>
+            <button class="btn btn-reset" onclick="rst('swish',{beta:1,showDerivative:false,showCritical:true})">Reset</button>
+        </div></div>`;
+        setTimeout(() => { bindS('wb',s,'beta'); bindT('wd',s,'showDerivative'); bindT('wc',s,'showCritical'); }, 0);
+    }
+}
+
+// ═══════════════════════════════════════════
+// INFO CARDS
+// ═══════════════════════════════════════════
+function updateInfoCards() {
+    const d = document.getElementById('info-cards');
+
+    if (currentFunction === 'linear') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Key Properties</h3><ul>
+            <li>Monotonic if m &ne; 0; constant if m = 0</li>
+            <li>Continuous, unbounded range</li>
+            <li>Derivative: f&prime;(x) = m (constant)</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> Since f&prime;(x) = m is constant and never zero (when m &ne; 0), the function has no local minima or maxima. Linear functions are strictly monotonic &mdash; they always increase or always decrease.</p>
+        </div>
+        <div class="info-card"><h3>Slope Triangle</h3>
+            <p>The triangle shows <em>rise/run</em>. Positive m tilts up-right; negative tilts down. When m = 0, the line is horizontal with zero slope everywhere.</p>
+        </div>`;
+
+    } else if (currentFunction === 'parabola') {
+        const s = S.parabola, disc = s.b*s.b - 4*s.a*s.c;
+        const rootsInfo = s.a===0?'Linear (a=0)':disc>0?'Two real roots':disc===0?'One repeated root':'No real roots';
+        const vx = s.a!==0 ? (-s.b/(2*s.a)).toFixed(2) : '?';
+        d.innerHTML = `
+        <div class="info-card"><h3>Key Properties</h3><ul>
+            <li>${s.a>0?'Opens up &mdash; has <em>minimum</em>':s.a<0?'Opens down &mdash; has <em>maximum</em>':'Linear'}</li>
+            <li>Vertex at x = ${vx}</li>
+            <li>&Delta; = ${disc.toFixed(2)} &rarr; ${rootsInfo}</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p>${s.a!==0?`One critical point: the <em>vertex</em> at x = ${vx}. Found by setting f&prime;(x) = 2ax + b = 0. This is a ${s.a>0?'global minimum':'global maximum'} since the parabola ${s.a>0?'opens upward':'opens downward'}.`:'When a = 0, this is a linear function with no critical points.'}</p>
+        </div>
+        <div class="info-card"><h3>Calculus</h3><ul>
+            <li>f&prime;(x) = ${(2*s.a).toFixed(1)}x ${s.b>=0?'+':'&minus;'} ${Math.abs(s.b).toFixed(1)}</li>
+            <li>f&Prime;(x) = ${(2*s.a).toFixed(1)} (constant)</li>
+            <li>${s.a>0?'Convex (bowl)':s.a<0?'Concave (dome)':'Flat'}</li>
+        </ul></div>`;
+
+    } else if (currentFunction === 'exponential') {
+        const s = S.exponential;
+        d.innerHTML = `
+        <div class="info-card"><h3>Key Properties</h3><ul>
+            <li>${s.b>0?'Exponential <em>growth</em>':s.b<0?'Exponential <em>decay</em>':'Constant'}</li>
+            <li>Asymptote at y = ${s.c.toFixed(2)}</li>
+            <li>Range: ${s.a>0?`(${s.c.toFixed(1)}, &infin;)`:s.a<0?`(&minus;&infin;, ${s.c.toFixed(1)})`:'{'+s.c.toFixed(1)+'}'}</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> f&prime;(x) = ab&middot;e<sup>bx</sup> is never zero because e<sup>bx</sup> &gt; 0 for all x. The exponential function is strictly monotonic &mdash; always increasing (when ab &gt; 0) or always decreasing (when ab &lt; 0).</p>
+        </div>
+        <div class="info-card"><h3>Self-Derivative</h3>
+            <p>The derivative of e<sup>x</sup> is itself &mdash; the <em>only</em> function with this property. For a&middot;e<sup>bx</sup>, the derivative is <code>ab&middot;e^(bx)</code>. Models population growth, radioactive decay, compound interest.</p>
+        </div>`;
+
+    } else if (currentFunction === 'logarithmic') {
+        const s = S.logarithmic;
+        d.innerHTML = `
+        <div class="info-card"><h3>Key Properties</h3><ul>
+            <li>Inverse of exponential</li>
+            <li>Domain: x &gt; ${(-s.d).toFixed(2)}</li>
+            <li>Vertical asymptote at x = ${(-s.d).toFixed(2)}</li>
+            <li>${s.a>0?'Increasing, concave down':s.a<0?'Decreasing, concave up':'Constant'}</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> f&prime;(x) = a/(x+d) is never zero on the domain x &gt; &minus;d. The logarithm is strictly monotonic &mdash; it grows without bound but ever more slowly. ln(x) grows slower than any positive power x<sup>&epsilon;</sup>.</p>
+        </div>
+        <div class="info-card"><h3>Derivative</h3>
+            <p>f&prime;(x) = <code>a/(x+d)</code>. Always positive (for a &gt; 0) on the domain. The rate of change decreases as x grows &mdash; logarithmic functions have <em>diminishing returns</em>.</p>
+        </div>`;
+
+    } else if (currentFunction === 'sigmoid') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Activation Function</h3><ul>
+            <li>Maps (&minus;&infin;, &infin;) &rarr; (0, 1)</li>
+            <li>Midpoint: &sigma;(0) = 0.5</li>
+            <li>Symmetric: &sigma;(&minus;x) = 1 &minus; &sigma;(x)</li>
+            <li>Steepness k controls transition sharpness</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> &sigma;&prime;(x) = k&middot;&sigma;(x)(1&minus;&sigma;(x)) is always positive (since &sigma; &isin; (0,1) and k &gt; 0). The sigmoid is strictly monotonic. However, its <em>derivative</em> has a maximum at x = 0 with value k/4.</p>
+        </div>
+        <div class="info-card"><h3>Vanishing Gradient</h3>
+            <p>For large |x|, &sigma;&prime; &asymp; 0 &mdash; the <em>vanishing gradient</em> problem. Maximum gradient is only k/4 at x = 0. This limits deep network training, which led to adoption of ReLU and its variants.</p>
+        </div>`;
+
+    } else if (currentFunction === 'tanh') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Activation Function</h3><ul>
+            <li>Maps (&minus;&infin;, &infin;) &rarr; (&minus;1, 1)</li>
+            <li>Zero-centered (unlike sigmoid)</li>
+            <li>tanh(x) = 2&sigma;(2x) &minus; 1</li>
+            <li>Odd function: tanh(&minus;x) = &minus;tanh(x)</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> f&prime;(x) = k&middot;sech&sup2;(kx) = k(1 &minus; tanh&sup2;(kx)) is always positive (for k &gt; 0) since tanh&sup2; &lt; 1. Strictly monotonic. The <em>inflection point</em> at the origin is where curvature changes sign, but not a critical point.</p>
+        </div>
+        <div class="info-card"><h3>vs Sigmoid</h3>
+            <p>Preferred over sigmoid because it's <em>zero-centered</em> &mdash; outputs negative values for negative inputs. This helps with gradient flow. Still suffers from vanishing gradients for large |x| where sech&sup2; &asymp; 0. Used in LSTMs and GRUs.</p>
+        </div>`;
+
+    } else if (currentFunction === 'relu') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Dead Neuron Problem</h3>
+            <p>Standard ReLU (&alpha;=0) outputs 0 for all x &lt; 0. If weights shift so inputs are always negative, the neuron <em>stops learning</em> &mdash; a dead neuron. Leaky ReLU (&alpha; &gt; 0) mitigates this by allowing small negative gradients.</p>
+        </div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None</em> in the classical sense. ReLU is piecewise linear with f&prime;(x) = &alpha; for x &lt; 0 and f&prime;(x) = 1 for x &gt; 0. The kink at x = 0 is a point of <em>non-differentiability</em> &mdash; the derivative is undefined there (left = &alpha;, right = 1).</p>
+        </div>
+        <div class="info-card"><h3>Efficiency</h3>
+            <p>Just a <code>max()</code> operation &mdash; no exponentials or divisions. Orders of magnitude faster than sigmoid/tanh. The non-saturating positive side (gradient = 1) avoids vanishing gradients, enabling very deep networks.</p>
+        </div>`;
+
+    } else if (currentFunction === 'softplus') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Smooth ReLU</h3><ul>
+            <li>f(x) = ln(1 + e<sup>&beta;x</sup>) / &beta;</li>
+            <li>Smooth approximation of ReLU</li>
+            <li>As &beta; &rarr; &infin;, approaches ReLU</li>
+            <li>Always positive: f(x) &gt; 0</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>None.</em> f&prime;(x) = &sigma;(&beta;x), the sigmoid function, which is always in (0, 1) and never zero. Softplus is strictly monotonically increasing. Its smooth curvature avoids the non-differentiable kink of ReLU.</p>
+        </div>
+        <div class="info-card"><h3>Derivative = Sigmoid</h3>
+            <p>The derivative of softplus is exactly the sigmoid: f&prime;(x) = &sigma;(&beta;x). This elegant relationship shows softplus as the <em>antiderivative</em> of sigmoid. Used in probabilistic models and as a smooth activation alternative.</p>
+        </div>`;
+
+    } else if (currentFunction === 'gelu') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Gaussian Error Linear Unit</h3><ul>
+            <li>GELU(x) = x &middot; &Phi;(x)</li>
+            <li>&Phi;(x) = CDF of standard normal</li>
+            <li>Smooth, non-monotonic activation</li>
+            <li>Used in GPT, BERT, ViT</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>Has a local minimum</em> near x &asymp; &minus;0.75 where GELU &asymp; &minus;0.17. Unlike ReLU, GELU is <em>non-monotonic</em> &mdash; it dips below zero before rising. This allows the function to softly gate negative inputs rather than hard-zeroing them.</p>
+        </div>
+        <div class="info-card"><h3>Why GELU Works</h3>
+            <p>Combines properties of dropout and ReLU. Inputs are weighted by their percentile rank under a Gaussian. Large positive values pass through (~x), large negative values are suppressed (~0), and values near zero are <em>probabilistically gated</em>.</p>
+        </div>`;
+
+    } else if (currentFunction === 'swish') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Swish / SiLU</h3><ul>
+            <li>f(x) = x &middot; &sigma;(&beta;x)</li>
+            <li>Self-gated activation</li>
+            <li>Discovered via neural architecture search</li>
+            <li>&beta;=1: SiLU (Sigmoid Linear Unit)</li>
+        </ul></div>
+        <div class="info-card"><h3>Critical Points</h3>
+            <p><em>Has a local minimum</em> for &beta; &gt; 0. The minimum moves closer to zero as &beta; increases. Like GELU, Swish is <em>non-monotonic</em> &mdash; it dips below zero, acting as a smooth, learnable gate. As &beta; &rarr; &infin;, Swish &rarr; ReLU.</p>
+        </div>
+        <div class="info-card"><h3>vs ReLU</h3>
+            <p>Swish is smooth everywhere (no kink), bounded below but unbounded above. The non-monotonicity helps regularize training. Outperforms ReLU on deep networks (&ge;40 layers). When &beta; &rarr; 0, Swish &rarr; x/2 (linear). When &beta; &rarr; &infin;, Swish &rarr; ReLU.</p>
+        </div>`;
+    }
+}
+
+// ═══════════════════════════════════════════
+// PRESETS & RESET
+// ═══════════════════════════════════════════
+function pre(fn, vals) { Object.assign(S[fn], vals); updateControls(); render(); }
+function rst(fn, defaults) { S[fn] = defaults; updateControls(); render(); }
+
+// ═══════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════
+document.querySelectorAll('.fn-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.fn-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFunction = tab.dataset.fn;
+        setCSS(currentFunction);
         updateControls();
         updateInfoCards();
         render();
-    </script>
+    });
+});
+
+// ═══════════════════════════════════════════
+// DRAGGING (parabola tangent)
+// ═══════════════════════════════════════════
+document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const svg = document.getElementById('plot');
+    const rect = svg.getBoundingClientRect();
+    const ratio = W / rect.width;
+    const x = ux((e.clientX - rect.left) * ratio);
+    if (dragging === 'tangent') { S.parabola.tangentX = clamp(x, -5, 5); render(); }
+});
+document.addEventListener('mouseup', () => { dragging = null; });
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+setCSS('linear');
+updateControls();
+updateInfoCards();
+render();
+</script>
 </body>
 </html>
