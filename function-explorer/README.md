@@ -1,203 +1,247 @@
 # Function Explorer
 
-An interactive, browser-based visualization tool for exploring mathematical functions and their properties in real-time. Built with pure JavaScript and SVG, requiring no external dependencies.
-
-## Live Demo
+An interactive, browser-based visualization tool for exploring mathematical functions and their properties in real-time.
 
 **[Launch Function Explorer →](https://mahesh-sadupalli.github.io/function-explorer/)**
 
-# Understanding Linear Functions: From Basics to Machine Learning
+---
 
-## What is a Linear Function?
+## Table of Contents
 
-A linear function represents one of the most fundamental relationships in mathematics, where one variable changes at a constant rate with respect to another. When we write y = mx + c, we're describing a straight line that captures this beautifully simple yet powerful relationship. Every unit increase in the input x results in the output y changing by exactly the same amount, regardless of where we are on the line.
-
-## The Anatomy of y = mx + c
-
-Let's break down each component to understand what makes a linear function work.
-
-### The Slope (m): The Rate of Change
-
-The slope m tells us how steep our line is and in which direction it's heading. Think of it as the "rate of exchange" between x and y. To calculate the slope between any two points (x₁, y₁) and (x₂, y₂) on the line, we use the formula:
-
-```
-m = (y₂ - y₁) / (x₂ - x₁) = Δy / Δx
-```
-
-This formula captures the concept of "rise over run" - how much the line rises (or falls) vertically for each unit of horizontal movement. When m is positive, the line slopes upward from left to right, indicating that y increases as x increases. When m is negative, the line slopes downward, showing that y decreases as x increases. A slope of zero gives us a horizontal line, where y remains constant regardless of x.
-
-### The Y-Intercept (c): The Starting Point
-
-The constant term c represents where the line crosses the y-axis, which occurs when x equals zero. This gives us our "starting value" - if we think of x as time and y as distance, then c would be our initial position. The y-intercept provides an anchor point for the entire line, shifting it up or down on the coordinate plane without changing its slope.
-
-## Mathematical Perspectives
-
-### As a Polynomial
-
-From an algebraic viewpoint, a linear function is a polynomial of degree one. This means the highest power of x in the expression is 1. We can write it in the general polynomial form as:
-
-```
-f(x) = a₁x¹ + a₀
-```
-
-where a₁ corresponds to our slope m and a₀ corresponds to our y-intercept c. When a₁ > 0, we have a positive gradient and the function slopes upward. When a₁ < 0, we have a negative gradient and the function slopes downward. This polynomial perspective helps us understand linear functions as the simplest members of a larger family of polynomial functions.
-
-### The Linear Algebra Connection
-
-In linear algebra, a linear function represents a mapping between vector spaces that preserves vector addition and scalar multiplication. When we write y = mx + c in this context, we're describing a transformation that takes a point in one-dimensional space and maps it to another point in one-dimensional space. The slope m acts as a scaling factor, while c provides a translation. This perspective becomes crucial when we extend to multiple dimensions, where linear functions become linear transformations represented by matrices.
-
-## The Machine Learning Perspective
-
-In machine learning, linear functions form the backbone of many fundamental algorithms. Here, we often see the notation shifted to emphasize the learning aspect:
-
-```
-ŷ = w₀ + w₁x₁ + w₂x₂ + ... + wₙxₙ
-```
-
-Let's decode this notation to connect it with our familiar y = mx + c:
-
-**ŷ (y-hat)** represents the predicted value - what our model thinks the output should be based on the input. The hat symbol distinguishes predictions from actual observed values.
-
-**w₀ (weight zero)** is the bias term, equivalent to our y-intercept c. In machine learning, we call it "bias" because it allows the model to fit data that doesn't pass through the origin. Without this term, our model would be forced to always predict zero when all inputs are zero.
-
-**w₁, w₂, ..., wₙ** are the weights or coefficients, analogous to our slope m but extended to multiple dimensions. Each weight determines how much its corresponding input feature influences the final prediction. In our simple case with one input, w₁ plays the role of m.
-
-**x₁, x₂, ..., xₙ** are the input features or variables. In the single-variable case, we just have x₁, which corresponds to our x.
-
-### Why Linear Models Matter in Machine Learning
-
-Linear models serve as the foundation for understanding more complex algorithms. They're interpretable - we can directly see how each input affects the output by examining its weight. They're computationally efficient, requiring minimal resources to train and evaluate. And perhaps most importantly, they provide a baseline against which we measure the performance of more sophisticated models.
-
-When we train a linear model, we're essentially searching for the best values of w₀ and w₁ that make our predictions ŷ as close as possible to the actual values y in our training data. This process, often done through methods like gradient descent or least squares optimization, is fundamentally about finding the right slope and intercept for our line.
-
-## Connecting All Perspectives
-
-Whether we view it as y = mx + c in basic algebra, as a degree-one polynomial in advanced mathematics, as a linear transformation in linear algebra, or as ŷ = w₀ + w₁x₁ in machine learning, we're describing the same fundamental relationship. Each perspective offers unique insights: algebra gives us the geometric intuition, polynomial theory places it in a broader mathematical context, linear algebra reveals its transformation properties, and machine learning shows us how to learn these relationships from data.
-
-The beauty of linear functions lies in their simplicity and universality. They appear everywhere from physics (velocity equals distance over time) to economics (supply and demand curves) to machine learning (linear regression and classification). Understanding them deeply provides a foundation for grasping more complex mathematical and computational concepts.
-
-## Practical Implications
-
-The constant rate of change property makes linear functions predictable and easy to extrapolate. If you know two points on a linear function, you can determine the entire function. This predictability makes them valuable for modeling relationships where we expect consistent behavior, though it also means they cannot capture more complex patterns like curves, cycles, or sudden changes.
-
-In your Function Explorer tool, manipulating the slope m allows you to see how the rate of change affects the line's steepness and direction, while adjusting c shows how the entire line shifts vertically. This interactive exploration helps build intuition about how these parameters control the function's behavior, bridging the gap between abstract mathematical concepts and visual understanding.
-## Features
-
-### Current Implementation
-- **Linear Functions** - Explore y = mx + b with interactive controls
-- **Real-time Interaction** - Adjust parameters and see immediate visual feedback
-- **Geometric Visualizations**
-  - Slope triangle showing rise over run
-  - X and Y intercept highlighting
-  - Grid system with labeled axes
-- **Lipschitz Continuity** - Interactive demonstration with draggable points
-- **Clean Interface** - Professional, responsive design
-- **Zero Dependencies** - Pure HTML/CSS/JavaScript, no build process required
-- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
-
-### Mathematical Concepts Illustrated
-- Slope and intercept relationships
-- Function continuity and boundedness
-- Rate of change visualization
-- Coordinate system navigation
-- Linear transformations
-
-## Quick Start
-
-### Option 1: Direct Browser
-Simply open `index.html` in any modern web browser.
-
-### Option 2: Local Server
-```bash
-# Using Python
-python3 -m http.server 8000
-
-# Using Node.js
-npx serve
-
-# Using PHP
-php -S localhost:8000
-```
-
-Then navigate to `http://localhost:8000`
-
-## Technology Stack
-
-- **Frontend**: Vanilla JavaScript (ES6+)
-- **Visualization**: SVG with dynamic rendering
-- **Styling**: Pure CSS with modern properties
-- **Deployment**: GitHub Pages
-- **Version Control**: Git
-
-## Usage Guide
-
-1. **Select Function Type** - Choose from available mathematical functions
-2. **Adjust Parameters** - Use sliders to modify function properties
-3. **Toggle Visualizations** - Enable/disable different visual aids
-4. **Use Presets** - Quick access to interesting function configurations
-5. **Interactive Elements** - Drag points for Lipschitz demonstration
-
-## Roadmap
-
-### Phase 1: Core Functions (In Progress)
-- [x] Linear functions (y = mx + b)
-- [ ] Quadratic functions (y = ax² + bx + c)
-- [ ] Exponential functions (y = aᵇˣ)
-- [ ] Logarithmic functions (y = log_b(x))
-
-### Phase 2: Advanced Functions
-- [ ] Trigonometric (sin, cos, tan)
-- [ ] Hyperbolic functions
-- [ ] Polynomial (degree n)
-- [ ] Rational functions
-
-### Phase 3: Machine Learning Functions
-- [ ] Activation functions (ReLU, Sigmoid, tanh)
-- [ ] Leaky ReLU and variants
-- [ ] Softplus
-- [ ] GELU (Gaussian Error Linear Unit)
-
-### Phase 4: Enhanced Features
-- [ ] Function composition
-- [ ] Derivative visualization
-- [ ] Integration areas
-- [ ] Animation system
-- [ ] Export to SVG/PNG
-- [ ] LaTeX equation rendering
-- [ ] Dark mode
-
-## Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Keep it dependency-free
-- Maintain responsive design
-- Add comments for complex calculations
-- Test across different browsers
-- Follow existing code style
-
-## Project Structure
-
-```
-function-explorer/
-│
-├── index.html          # Main application file
-├── README.md          # Project documentation
-├── LICENSE            # MIT license file
-└── .gitignore         # Git ignore rules
-```
-
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+1. [Linear Function](#1-linear-function)
+2. [Exponential Function](#2-exponential-function)
+3. [Logarithmic Function](#3-logarithmic-function)
 
 ---
 
+## 1. Linear Function
+
+A linear function describes a straight-line relationship between an input and an output. A constant change in input always produces a constant change in output.
+
+```
+f(x) = mx + b
+```
+
+- **m (Slope)** — the rate of change; how much y changes per unit change in x
+- **b (Y-Intercept)** — the value of f(x) when x = 0, i.e. where the line crosses the y-axis
+
+### Properties
+
+| Property | Description | Formula |
+|----------|-------------|---------|
+| Slope | Rate of change | m = (y₂ - y₁) / (x₂ - x₁) |
+| Y-Intercept | Starting value | b = y - mx |
+| Point-Slope Form | Line from a known point | y - y₁ = m(x - x₁) |
+| Derivative | Constant gradient | df(x)/dx = m |
+
+> The y-intercept is the value of the function at x = 0, i.e. b = f(0). The expression b = y - mx is used when computing the intercept from a known point (x, y) on the line.
+
+### Properties and ML Applications
+
+**1. Constant Slope (Rate of Change)**
+
+The slope remains the same everywhere on the line — the ratio Δy/Δx is constant.
+
+- **Linear Regression**: The slope coefficient tells us how much the expected output changes per unit increase in input
+- **Gradient Descent**: Constant derivatives make optimization predictable and efficient
+
+**2. No Local Minima or Maxima (when m ≠ 0)**
+
+A non-constant linear function has no turning points — it is strictly monotonic.
+
+- **Optimization Landscapes**: Unlike sigmoid or tanh, there are no local optima to get stuck in
+- **Gradient Flow**: Gradients never vanish since the derivative is constant
+- **Why Activation Functions Matter**: Neural networks need non-linear activations to create complex decision boundaries — linear functions alone cannot model them
+
+**3. Additivity: f(x₁ + x₂) = f(x₁) + f(x₂)**
+
+The output of a sum equals the sum of the individual outputs (when b = 0).
+
+- **Weighted Sum in Neural Networks**: Inputs are combined linearly as z = Σ wᵢxᵢ + b
+- **Feature Engineering**: The total effect equals the sum of individual feature effects
+
+**4. Homogeneity (Scaling): f(αx) = αf(x) (when b = 0)**
+
+Scaling the input by a factor α scales the output by the same factor.
+
+- **Feature Normalization**: Scaling inputs preserves linear relationships
+- **Regularization (L1/L2)**: Penalty scales proportionally with weights
+
+**5. Continuous and Differentiable Everywhere**
+
+The function has no gaps, jumps, or sharp corners. The derivative f'(x) = m is constant.
+
+- **Optimization Algorithms**: Smooth gradients enable gradient descent convergence
+- **Output Layer (Regression)**: Used to predict unbounded continuous values
+
+**6. Unbounded Range: (-∞, +∞) when m ≠ 0**
+
+The output can take any real number value. If m = 0, the range is just {b}.
+
+- **Regression Output**: The model can predict any real number
+- **Linear Regression Target**: No artificial limits on predictions
+
+---
+
+## 2. Exponential Function
+
+An exponential function models growth or decay. In the natural exponential case, the rate of change is proportional to the current value.
+
+```
+General Exponential:   f(x) = aˣ
+Natural Exponential:   f(x) = eˣ
+```
+
+- **a (The Base)** — must be a positive number (a > 0) and not equal to 1. When a > 1, the function represents growth. When 0 < a < 1, it represents decay
+- **x (The Exponent)** — the independent variable, often representing time or steps
+
+### Conversion
+
+Any exponential can be rewritten in terms of the natural exponential:
+
+```
+aˣ = e^(x · ln(a))
+```
+
+> The natural exponential uses the mathematical constant e ≈ 2.71828 (Euler's number).
+
+### Properties
+
+| Property | Description | Formula |
+|----------|-------------|---------|
+| Domain | All real numbers | x ∈ ℝ |
+| Range | Positive numbers only | y > 0 |
+| Growth Rate | Proportional to value | f'(x) = f(x) for eˣ |
+| Base Cases | Powers of base | a⁰ = 1, a¹ = a |
+
+### Properties and ML Applications
+
+**1. Self-Derivative (Natural Exponential)**
+
+The natural exponential eˣ is unique in that its derivative equals itself: d/dx(eˣ) = eˣ.
+
+- **Gradient-Based Optimization**: Derivatives remain exponential, simplifying backpropagation
+- **Activation Functions**: Appears naturally in softmax and sigmoid derivatives
+- **Stability in Training**: Predictable gradient behavior
+
+**2. No Local Minima or Maxima (Strictly Monotonic)**
+
+The exponential function is always increasing (for a > 1) or always decreasing (for 0 < a < 1). It never changes direction.
+
+- **Monotonic Activations**: Functions like exponential in attention mechanisms preserve ordering
+- **Optimization Landscapes**: Exponential terms often contribute to convex behavior, reducing the risk of local minima
+
+**3. Always Positive Range**
+
+The output of eˣ is always greater than zero for any input x.
+
+- **Probability Modeling**: Ensures non-negative outputs before normalization
+- **Softmax Function**: Converts logits to positive values
+- **Log-Likelihood**: Exponentiation ensures valid positive likelihoods before normalization
+
+**4. Exponential Growth/Decay**
+
+When a > 1 the function grows rapidly; when 0 < a < 1 it decays toward zero.
+
+- **Learning Rate Decay**: Reduces learning rate over epochs
+- **Gradient Explosion/Vanishing**: Understanding exponential behavior helps explain gradient explosion and vanishing in deep networks
+
+**5. Unbounded Range and Inverse with Logarithm**
+
+As x → ∞, eˣ → ∞. The range is (0, ∞). The logarithm is the inverse operation.
+
+- **Cross-Entropy Loss**: -ln(ŷ) assigns exponentially increasing penalty to confident wrong predictions
+- **Overflow Prevention**: Why we use log-softmax instead of raw softmax
+
+### Exponential Laws (Natural Exponential)
+
+```
+1.  e^(x+y) = eˣ · eʸ
+2.  ln(eˣ) = x
+3.  e^(ln(x)) = x    for x > 0
+4.  e^(x-y) = eˣ / eʸ
+5.  (eˣ)ʸ = e^(xy)
+```
+
+---
+
+## 3. Logarithmic Function
+
+A logarithmic function is the inverse of an exponential function. It answers the question: "To what power must we raise the base to get x?"
+
+```
+y = log_b(x)    ⟺    b^y = x
+```
+
+- **b (The Base)** — the base of the exponential
+- **y (The Logarithm)** — the exponent, i.e. the "answer"
+- **x (The Argument)** — the value you want to reach
+
+### Types of Logarithmic Functions
+
+| Type | Notation | Base | Usage |
+|------|----------|------|-------|
+| Common Log | log(x) | 10 | Earthquake magnitude scales, pH levels |
+| Natural Log | ln(x) | e ≈ 2.718 | Physics, biology, finance, continuous growth |
+
+### Domain and Range
+
+- **Domain**: x > 0 (strictly positive real numbers)
+- **Range**: All real numbers (-∞, +∞)
+
+> Why domain matters in ML: preventing log(0) errors. Many loss functions like cross-entropy use log internally, and passing zero or negative values causes numerical errors.
+
+### Properties and ML Applications
+
+**1. Monotonicity**
+
+For base b > 1, the logarithm is a strictly increasing function: if x₁ < x₂, then log_b(x₁) < log_b(x₂).
+
+- Preserves ordering in log-transformed features
+- Used in ranking algorithms and gradient descent
+
+**2. No Local Min/Max**
+
+The logarithm is continuously increasing with no turning points. As x → 0⁺, log(x) → -∞. As x → ∞, log(x) → ∞.
+
+- **Log Loss**: Unbounded penalty for confident wrong predictions
+- Ensures strong gradients for misclassified samples
+
+**3. Differentiability**
+
+The logarithm is differentiable everywhere in its domain.
+
+```
+General base:    d/dx [log_b(x)] = 1 / (x · ln(b))
+Natural log:     d/dx [ln(x)] = 1/x
+```
+
+- Smooth gradients in backpropagation
+- Used in log-likelihood optimization
+- Numerical stability in gradient computation
+
+**4. Concavity**
+
+The logarithm is a concave function — it curves downward. The second derivative is always negative:
+
+```
+d²/dx² [ln(x)] = -1/x²
+```
+
+- **Jensen's Inequality**: Used in probabilistic bounds
+- **Diminishing Returns**: As x increases, the rate of gain keeps getting smaller — log transforms compress large values while spreading out small values
+
+### Key Formulas
+
+```
+Power Rule:      log_b(xⁿ) = n · log_b(x)
+Product Rule:    log_b(xy) = log_b(x) + log_b(y)
+Quotient Rule:   log_b(x/y) = log_b(x) - log_b(y)
+Change of Base:  log_b(x) = log_a(x) / log_a(b)
+```
+
+---
+
+## License
+
+[MIT](LICENSE)
