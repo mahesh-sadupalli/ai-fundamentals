@@ -12,14 +12,10 @@ A structured guide to statistical concepts essential for data science and machin
 - **Part IV:** Gaussian Distribution — Normal distribution, PDF, empirical rule, Z-scores
 
 ### [Function Explorer](function-explorer/)
-Interactive web-based visualization tool for exploring mathematical functions commonly used in machine learning — activation functions, loss functions, and optimization landscapes.
+Interactive web-based visualization tool for exploring mathematical functions commonly used in machine learning — linear, exponential, and logarithmic functions with properties and ML applications.
 
-## Setup
-
-```bash
-git clone https://github.com/mahesh-sadupalli/ai-fundamentals.git
-```
+**[Launch Function Explorer →](https://mahesh-sadupalli.github.io/ai-fundamentals/function-explorer/)**
 
 ## License
 
-MIT
+[MIT](LICENSE)
