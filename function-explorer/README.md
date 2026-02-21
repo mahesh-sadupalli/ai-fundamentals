@@ -2,7 +2,7 @@
 
 An interactive, browser-based visualization tool for exploring mathematical functions and their properties in real-time.
 
-**[Launch Function Explorer →](https://mahesh-sadupalli.github.io/function-explorer/)**
+**[Launch Function Explorer →](https://mahesh-sadupalli.github.io/ai-fundamentals/function-explorer/)**
 
 ---
 
