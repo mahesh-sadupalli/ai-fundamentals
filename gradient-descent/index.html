@@ -188,6 +188,52 @@
             font-weight: 500;
         }
 
+        /* ========== View Toggle ========== */
+        .view-toggle {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: auto;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 3px;
+        }
+        .view-btn {
+            padding: 0.3rem 0.85rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .view-btn:hover { color: var(--text-secondary); }
+        .view-btn.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .tabs-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .tabs-row .algo-tabs { margin-bottom: 0; }
+        #canvas-3d {
+            width: 100%;
+            display: none;
+            cursor: grab;
+        }
+        #canvas-3d:active { cursor: grabbing; }
+        .plot-container.view-3d #contour-plot { display: none; }
+        .plot-container.view-3d #canvas-3d { display: block; }
+        .plot-container.view-3d .plot-hint { display: none; }
+
         /* ========== Main Grid ========== */
         .main-grid {
             display: grid;
@@ -565,12 +611,18 @@
             <p class="page-subtitle">Chapter 5 &middot; Training &amp; Optimization &mdash; Visualize how optimizers navigate a loss surface</p>
         </div>
 
-        <!-- Algorithm Tabs -->
-        <div class="algo-tabs" id="algo-tabs">
-            <button class="algo-tab active" data-algo="gd">GD</button>
-            <button class="algo-tab" data-algo="sgd">SGD</button>
-            <button class="algo-tab" data-algo="momentum">Momentum</button>
-            <button class="algo-tab" data-algo="adam">Adam</button>
+        <!-- Algorithm Tabs + View Toggle -->
+        <div class="tabs-row">
+            <div class="algo-tabs" id="algo-tabs">
+                <button class="algo-tab active" data-algo="gd">GD</button>
+                <button class="algo-tab" data-algo="sgd">SGD</button>
+                <button class="algo-tab" data-algo="momentum">Momentum</button>
+                <button class="algo-tab" data-algo="adam">Adam</button>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="2d">2D</button>
+                <button class="view-btn" data-view="3d">3D</button>
+            </div>
         </div>
 
         <!-- Main Grid -->
@@ -578,6 +630,7 @@
             <div class="plot-container">
                 <div class="plot-accent"></div>
                 <svg id="contour-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+                <canvas id="canvas-3d"></canvas>
                 <div class="plot-hint" id="plot-hint">Click to set starting position</div>
             </div>
             <div class="controls-container" id="controls">
@@ -636,6 +689,7 @@ function toggleTheme() {
     localStorage.setItem('ai-fund-theme', next);
     applyTheme(next);
     renderContour();
+    render3D();
     renderLossChart();
 }
 applyTheme(getTheme());
@@ -759,6 +813,7 @@ function doStep() {
     state.path.push([state.w[0], state.w[1]]);
     state.losses.push(loss(state.w[0], state.w[1]));
     renderContour();
+    render3D();
     renderLossChart();
     updateStats();
     updateEquation();
@@ -825,6 +880,7 @@ function resetOptimizer(w1, w2) {
     state.path = [[state.w[0], state.w[1]]];
     state.losses = [loss(state.w[0], state.w[1])];
     renderContour();
+    render3D();
     renderLossChart();
     updateStats();
     updateEquation();
@@ -1249,10 +1305,12 @@ function buildControls() {
         document.getElementById('show-gradient').addEventListener('change', e => {
             state.showGradient = e.target.checked;
             renderContour();
+            render3D();
         });
         document.getElementById('show-path').addEventListener('change', e => {
             state.showPath = e.target.checked;
             renderContour();
+            render3D();
         });
     }, 0);
 }
@@ -1313,6 +1371,345 @@ function updateInfoCards() {
         </div>`;
     }
 }
+
+// ═══════════════════════════════════════════════
+// 3D SURFACE VIEW
+// ═══════════════════════════════════════════════
+let viewMode = '2d';
+let azimuth = -0.6;   // rotation angle in radians
+let elevation = 0.75;  // tilt angle (~43 degrees)
+let isDragging3D = false;
+let dragStartX = 0;
+let dragStartAz = 0;
+
+const GRID_N = 40;
+const SURFACE_RANGE = 4;
+const MAX_LOSS_3D = 170;  // clamp for visual
+
+function project3D(x, y, z, canvasW, canvasH) {
+    // x = w1, y = w2, z = loss (height)
+    // Normalize to [-1, 1] range
+    const nx = x / SURFACE_RANGE;
+    const ny = y / SURFACE_RANGE;
+    const nz = z / MAX_LOSS_3D;
+
+    // Rotate around vertical (z) axis by azimuth
+    const cosA = Math.cos(azimuth), sinA = Math.sin(azimuth);
+    const rx = nx * cosA - ny * sinA;
+    const ry = nx * sinA + ny * cosA;
+    const rz = nz;
+
+    // Tilt by elevation (rotate around x-axis)
+    const cosE = Math.cos(elevation), sinE = Math.sin(elevation);
+    const ty = ry * cosE - rz * sinE;
+    const tz = ry * sinE + rz * cosE;
+
+    // Simple perspective projection
+    const fov = 3.5;
+    const depth = fov + tz * 0.5;
+    const scale = fov / depth;
+
+    const screenX = canvasW / 2 + rx * scale * canvasW * 0.32;
+    const screenY = canvasH * 0.52 - ty * scale * canvasH * 0.32;
+
+    return { x: screenX, y: screenY, depth: depth };
+}
+
+function getHeightColor(z, isDark) {
+    // Cyan gradient: low = dark/deep, high = bright
+    const t = Math.min(1, Math.max(0, z / MAX_LOSS_3D));
+    if (isDark) {
+        const r = Math.round(10 + t * 20);
+        const g = Math.round(40 + t * 170);
+        const b = Math.round(60 + t * 178);
+        return `rgb(${r},${g},${b})`;
+    } else {
+        const r = Math.round(220 - t * 180);
+        const g = Math.round(245 - t * 80);
+        const b = Math.round(248 - t * 50);
+        return `rgb(${r},${g},${b})`;
+    }
+}
+
+function render3D() {
+    if (viewMode !== '3d') return;
+
+    const canvas = document.getElementById('canvas-3d');
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+
+    // Set canvas size to match container (account for accent bar)
+    const w = rect.width;
+    const h = Math.min(w, 560);
+    canvas.width = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    canvas.style.height = h + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Clear
+    ctx.fillStyle = isDark ? '#1E293B' : '#FAFAF9';
+    ctx.fillRect(0, 0, w, h);
+
+    // Build mesh faces
+    const step = (2 * SURFACE_RANGE) / GRID_N;
+    const faces = [];
+
+    for (let i = 0; i < GRID_N; i++) {
+        for (let j = 0; j < GRID_N; j++) {
+            const x0 = -SURFACE_RANGE + i * step;
+            const x1 = x0 + step;
+            const y0 = -SURFACE_RANGE + j * step;
+            const y1 = y0 + step;
+
+            const z00 = Math.min(loss(x0, y0), MAX_LOSS_3D);
+            const z10 = Math.min(loss(x1, y0), MAX_LOSS_3D);
+            const z11 = Math.min(loss(x1, y1), MAX_LOSS_3D);
+            const z01 = Math.min(loss(x0, y1), MAX_LOSS_3D);
+
+            const p00 = project3D(x0, y0, z00, w, h);
+            const p10 = project3D(x1, y0, z10, w, h);
+            const p11 = project3D(x1, y1, z11, w, h);
+            const p01 = project3D(x0, y1, z01, w, h);
+
+            const avgZ = (z00 + z10 + z11 + z01) / 4;
+            const avgDepth = (p00.depth + p10.depth + p11.depth + p01.depth) / 4;
+
+            faces.push({
+                pts: [p00, p10, p11, p01],
+                avgZ, avgDepth,
+                color: getHeightColor(avgZ, isDark),
+                wireColor: isDark ? 'rgba(34,211,238,0.12)' : 'rgba(6,182,212,0.15)'
+            });
+        }
+    }
+
+    // Painter's algorithm: sort by depth (far first)
+    faces.sort((a, b) => b.avgDepth - a.avgDepth);
+
+    // Draw faces
+    for (const face of faces) {
+        ctx.beginPath();
+        ctx.moveTo(face.pts[0].x, face.pts[0].y);
+        ctx.lineTo(face.pts[1].x, face.pts[1].y);
+        ctx.lineTo(face.pts[2].x, face.pts[2].y);
+        ctx.lineTo(face.pts[3].x, face.pts[3].y);
+        ctx.closePath();
+        ctx.fillStyle = face.color;
+        ctx.fill();
+        ctx.strokeStyle = face.wireColor;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+    }
+
+    // Draw axes
+    drawAxis3D(ctx, w, h, isDark);
+
+    // Draw optimizer path on surface
+    if (state.showPath && state.path.length > 1) {
+        ctx.beginPath();
+        for (let i = 0; i < state.path.length; i++) {
+            const [pw1, pw2] = state.path[i];
+            const pz = loss(pw1, pw2) + 1.5; // lift slightly above surface
+            const p = project3D(pw1, pw2, Math.min(pz, MAX_LOSS_3D), w, h);
+            if (i === 0) ctx.moveTo(p.x, p.y);
+            else ctx.lineTo(p.x, p.y);
+        }
+        const pathStyle = getComputedStyle(document.documentElement);
+        ctx.strokeStyle = pathStyle.getPropertyValue('--path-color').trim();
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = 0.9;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+
+    // Draw current position
+    if (state.path.length > 0) {
+        const [cw1, cw2] = [state.w[0], state.w[1]];
+        const cz = loss(cw1, cw2) + 1.5;
+        const cp = project3D(cw1, cw2, Math.min(cz, MAX_LOSS_3D), w, h);
+
+        // Glow
+        const grd = ctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, 14);
+        grd.addColorStop(0, 'rgba(252,106,73,0.5)');
+        grd.addColorStop(1, 'rgba(252,106,73,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(cp.x - 14, cp.y - 14, 28, 28);
+
+        // Point
+        ctx.beginPath();
+        ctx.arc(cp.x, cp.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#FC6A49';
+        ctx.fill();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    // "Drag to rotate" hint
+    if (!isDragging3D && state.path.length <= 1) {
+        ctx.font = `11px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = isDark ? '#64748B' : '#8896A6';
+        ctx.textAlign = 'center';
+        ctx.fillText('Drag to rotate', w / 2, h - 12);
+    }
+}
+
+function drawAxis3D(ctx, w, h, isDark) {
+    const axisLen = SURFACE_RANGE * 1.1;
+    const labelColor = isDark ? '#94A3B8' : '#4A5568';
+    const axisColor = isDark ? '#64748B' : '#8896A6';
+
+    // w1 axis (x)
+    const xStart = project3D(-axisLen, 0, 0, w, h);
+    const xEnd = project3D(axisLen, 0, 0, w, h);
+    ctx.beginPath();
+    ctx.moveTo(xStart.x, xStart.y);
+    ctx.lineTo(xEnd.x, xEnd.y);
+    ctx.strokeStyle = axisColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // w2 axis (y)
+    const yStart = project3D(0, -axisLen, 0, w, h);
+    const yEnd = project3D(0, axisLen, 0, w, h);
+    ctx.beginPath();
+    ctx.moveTo(yStart.x, yStart.y);
+    ctx.lineTo(yEnd.x, yEnd.y);
+    ctx.strokeStyle = axisColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Loss axis (z) — short vertical indicator
+    const zStart = project3D(0, 0, 0, w, h);
+    const zEnd = project3D(0, 0, MAX_LOSS_3D * 0.8, w, h);
+    ctx.beginPath();
+    ctx.moveTo(zStart.x, zStart.y);
+    ctx.lineTo(zEnd.x, zEnd.y);
+    ctx.strokeStyle = axisColor;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.font = `12px 'JetBrains Mono', monospace`;
+    ctx.fillStyle = labelColor;
+
+    const lw1 = project3D(axisLen + 0.3, 0, 0, w, h);
+    ctx.textAlign = 'center';
+    ctx.fillText('w\u2081', lw1.x, lw1.y + 4);
+
+    const lw2 = project3D(0, axisLen + 0.3, 0, w, h);
+    ctx.fillText('w\u2082', lw2.x, lw2.y + 4);
+
+    const lLoss = project3D(0, 0, MAX_LOSS_3D * 0.85, w, h);
+    ctx.fillText('loss', lLoss.x + 14, lLoss.y + 4);
+}
+
+// 3D mouse interaction
+(function setup3DInteraction() {
+    const canvas = document.getElementById('canvas-3d');
+
+    canvas.addEventListener('mousedown', e => {
+        isDragging3D = true;
+        dragStartX = e.clientX;
+        dragStartAz = azimuth;
+        e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', e => {
+        if (!isDragging3D) return;
+        const dx = e.clientX - dragStartX;
+        azimuth = dragStartAz + dx * 0.008;
+        render3D();
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging3D = false;
+    });
+
+    // Touch support
+    canvas.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            isDragging3D = true;
+            dragStartX = e.touches[0].clientX;
+            dragStartAz = azimuth;
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', e => {
+        if (!isDragging3D || e.touches.length !== 1) return;
+        const dx = e.touches[0].clientX - dragStartX;
+        azimuth = dragStartAz + dx * 0.008;
+        render3D();
+    });
+
+    window.addEventListener('touchend', () => {
+        isDragging3D = false;
+    });
+
+    // Click-to-place on 3D view (approximate unproject)
+    canvas.addEventListener('click', e => {
+        if (Math.abs(e.clientX - dragStartX) > 5) return; // was a drag, not click
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const cw = rect.width;
+        const ch = parseFloat(canvas.style.height);
+
+        // Brute-force find closest surface point to click
+        let bestDist = Infinity;
+        let bestW1 = 0, bestW2 = 0;
+        const searchStep = 0.2;
+        for (let w1 = -SURFACE_RANGE; w1 <= SURFACE_RANGE; w1 += searchStep) {
+            for (let w2 = -SURFACE_RANGE; w2 <= SURFACE_RANGE; w2 += searchStep) {
+                const z = loss(w1, w2);
+                if (z > MAX_LOSS_3D) continue;
+                const p = project3D(w1, w2, z, cw, ch);
+                const dx = p.x - clickX;
+                const dy = p.y - clickY;
+                const dist = dx * dx + dy * dy;
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestW1 = w1;
+                    bestW2 = w2;
+                }
+            }
+        }
+        if (bestDist < 900) { // within ~30px
+            resetOptimizer(bestW1, bestW2);
+        }
+    });
+
+    // Resize
+    window.addEventListener('resize', () => {
+        if (viewMode === '3d') render3D();
+    });
+})();
+
+// View toggle
+document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        viewMode = btn.dataset.view;
+        const plotContainer = document.querySelector('.plot-container');
+        if (viewMode === '3d') {
+            plotContainer.classList.add('view-3d');
+            render3D();
+        } else {
+            plotContainer.classList.remove('view-3d');
+            renderContour();
+        }
+    });
+});
 
 // ═══════════════════════════════════════════════
 // EVENTS
