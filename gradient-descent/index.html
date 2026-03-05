@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Descent &mdash; AI Fundamentals</title>
+    <meta name="description" content="Interactive visualization of gradient descent optimizers on a 2D loss surface. Compare GD, SGD, Momentum, and Adam.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ========== CSS Custom Properties ========== */
+        :root {
+            --bg-primary: #FDF6F3;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #232F3E;
+            --text-secondary: #4A5568;
+            --text-tertiary: #8896A6;
+            --accent: #06B6D4;
+            --accent-hover: #0891B2;
+            --accent-light: rgba(6, 182, 212, 0.08);
+            --accent-glow: rgba(6, 182, 212, 0.15);
+            --accent-medium: rgba(6, 182, 212, 0.25);
+            --border: #E8DDD8;
+            --border-light: #F3EDE9;
+            --card-bg: #FFFFFF;
+            --surface: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(35, 47, 62, 0.04), 0 4px 12px rgba(35, 47, 62, 0.04);
+            --shadow-md: 0 4px 16px rgba(35, 47, 62, 0.08);
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --contour-1: rgba(6, 182, 212, 0.06);
+            --contour-2: rgba(6, 182, 212, 0.10);
+            --contour-3: rgba(6, 182, 212, 0.15);
+            --contour-4: rgba(6, 182, 212, 0.20);
+            --contour-5: rgba(6, 182, 212, 0.28);
+            --contour-6: rgba(6, 182, 212, 0.36);
+            --contour-7: rgba(6, 182, 212, 0.45);
+            --contour-8: rgba(6, 182, 212, 0.55);
+            --contour-stroke: rgba(6, 182, 212, 0.25);
+            --path-color: #F43F5E;
+            --gradient-arrow: #F59E0B;
+            --point-color: #FC6A49;
+            --grid-color: #E8DDD8;
+            --axis-color: #8896A6;
+            --loss-line: #8B5CF6;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1A2332;
+            --bg-secondary: #232F3E;
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --text-tertiary: #64748B;
+            --accent: #22D3EE;
+            --accent-hover: #06B6D4;
+            --accent-light: rgba(34, 211, 238, 0.1);
+            --accent-glow: rgba(34, 211, 238, 0.2);
+            --accent-medium: rgba(34, 211, 238, 0.3);
+            --border: #334155;
+            --border-light: #2D3B4E;
+            --card-bg: #232F3E;
+            --surface: #232F3E;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --contour-1: rgba(34, 211, 238, 0.05);
+            --contour-2: rgba(34, 211, 238, 0.08);
+            --contour-3: rgba(34, 211, 238, 0.12);
+            --contour-4: rgba(34, 211, 238, 0.17);
+            --contour-5: rgba(34, 211, 238, 0.22);
+            --contour-6: rgba(34, 211, 238, 0.28);
+            --contour-7: rgba(34, 211, 238, 0.35);
+            --contour-8: rgba(34, 211, 238, 0.42);
+            --contour-stroke: rgba(34, 211, 238, 0.2);
+            --path-color: #FB7185;
+            --gradient-arrow: #FBBF24;
+            --point-color: #FC6A49;
+            --grid-color: #334155;
+            --axis-color: #64748B;
+            --loss-line: #A78BFA;
+        }
+
+        /* ========== Reset & Base ========== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ========== Nav ========== */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--accent); }
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+
+        /* ========== Header ========== */
+        .page-header {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 0.35rem;
+        }
+        .page-header h1 span { color: var(--accent); }
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Algorithm Tabs ========== */
+        .algo-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .algo-tab {
+            padding: 0.45rem 1rem;
+            border-radius: 100px;
+            font-size: 0.82rem;
+            font-family: var(--font-mono);
+            font-weight: 400;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .algo-tab:hover {
+            color: var(--text-secondary);
+            background: var(--accent-light);
+        }
+        .algo-tab.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* ========== Main Grid ========== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ========== Contour Plot ========== */
+        .plot-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .plot-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+        }
+        .plot-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: crosshair;
+        }
+        .plot-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-tertiary);
+            background: var(--surface);
+            padding: 3px 10px;
+            border-radius: 100px;
+            border: 1px solid var(--border-light);
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        .plot-hint.hidden { opacity: 0; }
+
+        /* ========== Controls Panel ========== */
+        .controls-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .controls-container h2 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .control-group label span {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.82rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+        }
+
+        /* Checkbox toggle */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 34px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            flex-shrink: 0;
+        }
+        .checkbox-group input[type="checkbox"]::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transition: transform 0.25s ease;
+        }
+        .checkbox-group input[type="checkbox"]:checked { background: var(--accent); }
+        .checkbox-group input[type="checkbox"]:checked::after { transform: translateX(14px); }
+        .checkbox-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Transport buttons */
+        .transport {
+            display: flex;
+            gap: 8px;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .transport-btn {
+            flex: 1;
+            padding: 0.5rem 0;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .transport-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn.playing {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Stats display */
+        .stats-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 0.75rem;
+        }
+        .stats-section h3 {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .stat-item {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .stat-item .stat-label { color: var(--text-tertiary); }
+        .stat-item .stat-value { color: var(--accent); font-weight: 500; }
+
+        /* Update equation */
+        .equation-display {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            line-height: 1.6;
+            word-break: break-all;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ========== Loss Chart ========== */
+        .loss-chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .loss-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .loss-chart-header h3 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+        .loss-chart-header span {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--loss-line);
+            font-weight: 500;
+        }
+        .loss-chart-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ========== Info Cards ========== */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .info-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .info-card:hover::before { opacity: 1; }
+        .info-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            padding-left: 0.75rem;
+        }
+        .info-card p, .info-card ul {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: 0.75rem;
+        }
+        .info-card ul { padding-left: 1.75rem; }
+        .info-card li { margin-bottom: 0.15rem; }
+        .info-card code {
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            background: var(--bg-primary);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .info-card em { color: var(--accent); font-style: italic; }
+
+        /* ========== Footer ========== */
+        .page-footer {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+            padding: 2rem 0 0.5rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 960px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 1.25rem 1rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .info-cards { grid-template-columns: 1fr; }
+            .algo-tabs { gap: 4px; }
+            .algo-tab { font-size: 0.72rem; padding: 0.35rem 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Nav -->
+        <div class="top-nav">
+            <a href="../" class="back-link">&larr; AI Fundamentals</a>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Gradient <span>Descent</span></h1>
+            <p class="page-subtitle">Chapter 5 &middot; Training &amp; Optimization &mdash; Visualize how optimizers navigate a loss surface</p>
+        </div>
+
+        <!-- Algorithm Tabs -->
+        <div class="algo-tabs" id="algo-tabs">
+            <button class="algo-tab active" data-algo="gd">GD</button>
+            <button class="algo-tab" data-algo="sgd">SGD</button>
+            <button class="algo-tab" data-algo="momentum">Momentum</button>
+            <button class="algo-tab" data-algo="adam">Adam</button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <div class="plot-container">
+                <div class="plot-accent"></div>
+                <svg id="contour-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+                <div class="plot-hint" id="plot-hint">Click to set starting position</div>
+            </div>
+            <div class="controls-container" id="controls">
+                <h2>Controls</h2>
+                <div id="sliders"></div>
+                <div id="toggles"></div>
+                <div class="transport">
+                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()">&#9654; Play</button>
+                    <button class="transport-btn" onclick="stepOnce()">&#9193; Step</button>
+                    <button class="transport-btn" onclick="resetOptimizer()">&#8634; Reset</button>
+                </div>
+                <div class="stats-section">
+                    <h3>Live Stats</h3>
+                    <div class="stats-grid" id="stats"></div>
+                </div>
+                <div id="equation"></div>
+            </div>
+        </div>
+
+        <!-- Loss Chart -->
+        <div class="loss-chart-container">
+            <div class="loss-chart-header">
+                <h3>Loss vs Iteration</h3>
+                <span id="loss-label"></span>
+            </div>
+            <svg id="loss-chart" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards" id="info-cards"></div>
+
+        <div class="page-footer">Chapter 5 &middot; Gradient Descent &mdash; AI Fundamentals</div>
+    </div>
+
+<script>
+// ═══════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════
+function getTheme() {
+    const s = localStorage.getItem('ai-fund-theme');
+    if (s) return s;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const sun = document.querySelector('.icon-sun');
+    const moon = document.querySelector('.icon-moon');
+    if (sun && moon) {
+        sun.style.display = t === 'dark' ? 'none' : 'block';
+        moon.style.display = t === 'dark' ? 'block' : 'none';
+    }
+}
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ai-fund-theme', next);
+    applyTheme(next);
+    renderContour();
+    renderLossChart();
+}
+applyTheme(getTheme());
+
+// ═══════════════════════════════════════════════
+// SVG HELPERS
+// ═══════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+}
+
+// ═══════════════════════════════════════════════
+// LOSS FUNCTION: f(w1, w2) = w1^2 + 10*w2^2
+// ═══════════════════════════════════════════════
+function loss(w1, w2) { return w1 * w1 + 10 * w2 * w2; }
+function gradient(w1, w2) { return [2 * w1, 20 * w2]; }
+
+// ═══════════════════════════════════════════════
+// COORDINATE MAPPING (contour plot)
+// Plot domain: w1 in [-4, 4], w2 in [-4, 4]
+// SVG viewBox: 0 0 500 500
+// ═══════════════════════════════════════════════
+const PAD = 40;
+const PW = 500, PH = 500;
+const PLOT_LEFT = PAD, PLOT_RIGHT = PW - 20;
+const PLOT_TOP = 20, PLOT_BOTTOM = PH - PAD;
+const INNER_W = PLOT_RIGHT - PLOT_LEFT;
+const INNER_H = PLOT_BOTTOM - PLOT_TOP;
+const DOMAIN = [-4, 4];
+
+function w2px(w) { return PLOT_LEFT + ((w - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_W; }
+function w2py(w) { return PLOT_BOTTOM - ((w - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_H; }
+function px2w(px) { return DOMAIN[0] + ((px - PLOT_LEFT) / INNER_W) * (DOMAIN[1] - DOMAIN[0]); }
+function py2w(py) { return DOMAIN[0] + ((PLOT_BOTTOM - py) / INNER_H) * (DOMAIN[1] - DOMAIN[0]); }
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let state = {
+    algo: 'gd',
+    lr: 0.05,
+    noiseScale: 1.0,
+    beta: 0.9,
+    beta1: 0.9,
+    beta2: 0.999,
+    speed: 1,
+    playing: false,
+    showGradient: true,
+    showPath: true,
+    // Optimizer state
+    w: [3.5, 3.0],
+    v: [0, 0],        // momentum velocity
+    m: [0, 0],        // Adam 1st moment
+    s: [0, 0],        // Adam 2nd moment
+    t: 0,             // iteration
+    path: [],
+    losses: [],
+    startW: [3.5, 3.0]
+};
+const MAX_ITERS = 500;
+
+function gaussianRandom() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// ═══════════════════════════════════════════════
+// OPTIMIZER STEPS
+// ═══════════════════════════════════════════════
+function stepGD() {
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    state.w[0] -= state.lr * g1;
+    state.w[1] -= state.lr * g2;
+}
+
+function stepSGD() {
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    const noise1 = gaussianRandom() * state.noiseScale;
+    const noise2 = gaussianRandom() * state.noiseScale;
+    state.w[0] -= state.lr * (g1 + noise1);
+    state.w[1] -= state.lr * (g2 + noise2);
+}
+
+function stepMomentum() {
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    state.v[0] = state.beta * state.v[0] + g1;
+    state.v[1] = state.beta * state.v[1] + g2;
+    state.w[0] -= state.lr * state.v[0];
+    state.w[1] -= state.lr * state.v[1];
+}
+
+function stepAdam() {
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    const eps = 1e-8;
+    state.t++;
+    // Update biased first moment
+    state.m[0] = state.beta1 * state.m[0] + (1 - state.beta1) * g1;
+    state.m[1] = state.beta1 * state.m[1] + (1 - state.beta1) * g2;
+    // Update biased second moment
+    state.s[0] = state.beta2 * state.s[0] + (1 - state.beta2) * g1 * g1;
+    state.s[1] = state.beta2 * state.s[1] + (1 - state.beta2) * g2 * g2;
+    // Bias correction
+    const mHat0 = state.m[0] / (1 - Math.pow(state.beta1, state.t));
+    const mHat1 = state.m[1] / (1 - Math.pow(state.beta1, state.t));
+    const sHat0 = state.s[0] / (1 - Math.pow(state.beta2, state.t));
+    const sHat1 = state.s[1] / (1 - Math.pow(state.beta2, state.t));
+    state.w[0] -= state.lr * mHat0 / (Math.sqrt(sHat0) + eps);
+    state.w[1] -= state.lr * mHat1 / (Math.sqrt(sHat1) + eps);
+}
+
+const stepFns = { gd: stepGD, sgd: stepSGD, momentum: stepMomentum, adam: stepAdam };
+
+function doStep() {
+    if (state.path.length >= MAX_ITERS) { pause(); return; }
+    stepFns[state.algo]();
+    state.path.push([state.w[0], state.w[1]]);
+    state.losses.push(loss(state.w[0], state.w[1]));
+    renderContour();
+    renderLossChart();
+    updateStats();
+    updateEquation();
+}
+
+function stepOnce() {
+    doStep();
+    const hint = document.getElementById('plot-hint');
+    if (hint) hint.classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION
+// ═══════════════════════════════════════════════
+let animId = null;
+let lastTime = 0;
+
+function animate(timestamp) {
+    if (!state.playing) return;
+    const interval = Math.max(16, 200 / state.speed);
+    if (timestamp - lastTime >= interval) {
+        doStep();
+        lastTime = timestamp;
+    }
+    if (state.path.length < MAX_ITERS && state.playing) {
+        animId = requestAnimationFrame(animate);
+    } else {
+        pause();
+    }
+}
+
+function play() {
+    state.playing = true;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9646;&#9646; Pause';
+    btn.classList.add('playing');
+    document.getElementById('plot-hint').classList.add('hidden');
+    lastTime = 0;
+    animId = requestAnimationFrame(animate);
+}
+
+function pause() {
+    state.playing = false;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9654; Play';
+    btn.classList.remove('playing');
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+}
+
+function togglePlay() {
+    if (state.playing) pause(); else play();
+}
+
+function resetOptimizer(w1, w2) {
+    pause();
+    if (w1 !== undefined && w2 !== undefined) {
+        state.startW = [w1, w2];
+    }
+    state.w = [state.startW[0], state.startW[1]];
+    state.v = [0, 0];
+    state.m = [0, 0];
+    state.s = [0, 0];
+    state.t = 0;
+    state.path = [[state.w[0], state.w[1]]];
+    state.losses = [loss(state.w[0], state.w[1])];
+    renderContour();
+    renderLossChart();
+    updateStats();
+    updateEquation();
+    document.getElementById('plot-hint').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════
+// CONTOUR RENDERING
+// ═══════════════════════════════════════════════
+function renderContour() {
+    const svg = document.getElementById('contour-plot');
+    svg.innerHTML = '';
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Background
+    svg.appendChild(svgEl('rect', {
+        x: PLOT_LEFT, y: PLOT_TOP,
+        width: INNER_W, height: INNER_H,
+        fill: isDark ? '#1E293B' : '#FAFAF9',
+        rx: '4'
+    }));
+
+    // Contour levels (filled ellipses, outermost first)
+    const levels = [120, 80, 50, 30, 18, 10, 5, 2, 0.5];
+    const fills = [
+        'var(--contour-1)', 'var(--contour-2)', 'var(--contour-3)',
+        'var(--contour-4)', 'var(--contour-5)', 'var(--contour-6)',
+        'var(--contour-7)', 'var(--contour-8)', 'var(--accent-medium)'
+    ];
+
+    // Clip to plot area
+    const clipId = 'plot-clip';
+    const defs = svgEl('defs', {});
+    const clip = svgEl('clipPath', { id: clipId });
+    clip.appendChild(svgEl('rect', { x: PLOT_LEFT, y: PLOT_TOP, width: INNER_W, height: INNER_H }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    const contourG = svgEl('g', { 'clip-path': `url(#${clipId})` });
+
+    for (let i = 0; i < levels.length; i++) {
+        const c = levels[i];
+        // f(w1,w2) = w1^2 + 10*w2^2 = c  =>  semi-axes: sqrt(c), sqrt(c/10)
+        const a = Math.sqrt(c);
+        const b = Math.sqrt(c / 10);
+        const cx = w2px(0), cy = w2py(0);
+        const rx = (a / (DOMAIN[1] - DOMAIN[0])) * INNER_W;
+        const ry = (b / (DOMAIN[1] - DOMAIN[0])) * INNER_H;
+
+        contourG.appendChild(svgEl('ellipse', {
+            cx: cx, cy: cy, rx: rx, ry: ry,
+            fill: fills[i], stroke: 'var(--contour-stroke)', 'stroke-width': '0.75'
+        }));
+    }
+    svg.appendChild(contourG);
+
+    // Grid lines
+    const gridG = svgEl('g', {});
+    for (let w = -4; w <= 4; w++) {
+        if (w === 0) continue;
+        gridG.appendChild(svgEl('line', {
+            x1: w2px(w), y1: PLOT_TOP, x2: w2px(w), y2: PLOT_BOTTOM,
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+        gridG.appendChild(svgEl('line', {
+            x1: PLOT_LEFT, y1: w2py(w), x2: PLOT_RIGHT, y2: w2py(w),
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+    }
+    // Axes
+    gridG.appendChild(svgEl('line', {
+        x1: PLOT_LEFT, y1: w2py(0), x2: PLOT_RIGHT, y2: w2py(0),
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    gridG.appendChild(svgEl('line', {
+        x1: w2px(0), y1: PLOT_TOP, x2: w2px(0), y2: PLOT_BOTTOM,
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    svg.appendChild(gridG);
+
+    // Axis labels
+    for (let w = -4; w <= 4; w++) {
+        if (w === 0) continue;
+        const tx = svgEl('text', {
+            x: w2px(w), y: PLOT_BOTTOM + 16,
+            'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        tx.textContent = w;
+        svg.appendChild(tx);
+        const ty = svgEl('text', {
+            x: PLOT_LEFT - 8, y: w2py(w) + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        ty.textContent = w;
+        svg.appendChild(ty);
+    }
+    // Axis names
+    const lw1 = svgEl('text', {
+        x: PLOT_RIGHT - 4, y: w2py(0) - 8,
+        'text-anchor': 'end', fill: 'var(--text-tertiary)',
+        'font-size': '11', 'font-family': 'JetBrains Mono, monospace', 'font-weight': '500'
+    });
+    lw1.textContent = 'w\u2081';
+    svg.appendChild(lw1);
+    const lw2 = svgEl('text', {
+        x: w2px(0) + 10, y: PLOT_TOP + 14,
+        'text-anchor': 'start', fill: 'var(--text-tertiary)',
+        'font-size': '11', 'font-family': 'JetBrains Mono, monospace', 'font-weight': '500'
+    });
+    lw2.textContent = 'w\u2082';
+    svg.appendChild(lw2);
+
+    // Minimum marker
+    svg.appendChild(svgEl('circle', {
+        cx: w2px(0), cy: w2py(0), r: '3',
+        fill: 'var(--accent)', opacity: '0.6'
+    }));
+
+    // Path
+    if (state.showPath && state.path.length > 1) {
+        let d = '';
+        for (let i = 0; i < state.path.length; i++) {
+            const [w1, w2] = state.path[i];
+            const px = w2px(w1), py = w2py(w2);
+            d += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ' ' + py.toFixed(1);
+        }
+        svg.appendChild(svgEl('path', {
+            d: d, fill: 'none', stroke: 'var(--path-color)',
+            'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+            opacity: '0.8'
+        }));
+        // Fading trail dots
+        const showDots = Math.min(state.path.length, 30);
+        for (let i = Math.max(0, state.path.length - showDots); i < state.path.length - 1; i++) {
+            const [w1, w2] = state.path[i];
+            const alpha = 0.15 + 0.4 * ((i - (state.path.length - showDots)) / showDots);
+            svg.appendChild(svgEl('circle', {
+                cx: w2px(w1), cy: w2py(w2), r: '2',
+                fill: 'var(--path-color)', opacity: alpha.toFixed(2)
+            }));
+        }
+    }
+
+    // Gradient arrow
+    if (state.showGradient && state.path.length > 0) {
+        const [g1, g2] = gradient(state.w[0], state.w[1]);
+        const mag = Math.sqrt(g1 * g1 + g2 * g2);
+        if (mag > 0.01) {
+            const scale = Math.min(0.6, 30 / mag);
+            const px = w2px(state.w[0]), py = w2py(state.w[1]);
+            // Arrow points in -gradient direction (descent)
+            const dx = -g1 * scale;
+            const dy = g2 * scale;
+            const ex = px + (dx / (DOMAIN[1] - DOMAIN[0])) * INNER_W;
+            const ey = py + (dy / (DOMAIN[1] - DOMAIN[0])) * INNER_H;
+
+            // Arrow line
+            svg.appendChild(svgEl('line', {
+                x1: px, y1: py, x2: ex, y2: ey,
+                stroke: 'var(--gradient-arrow)', 'stroke-width': '2.5',
+                'stroke-linecap': 'round'
+            }));
+            // Arrowhead
+            const angle = Math.atan2(ey - py, ex - px);
+            const headLen = 8;
+            const a1x = ex - headLen * Math.cos(angle - 0.4);
+            const a1y = ey - headLen * Math.sin(angle - 0.4);
+            const a2x = ex - headLen * Math.cos(angle + 0.4);
+            const a2y = ey - headLen * Math.sin(angle + 0.4);
+            svg.appendChild(svgEl('polygon', {
+                points: `${ex},${ey} ${a1x},${a1y} ${a2x},${a2y}`,
+                fill: 'var(--gradient-arrow)'
+            }));
+        }
+    }
+
+    // Current position
+    if (state.path.length > 0) {
+        const px = w2px(state.w[0]), py = w2py(state.w[1]);
+        // Glow
+        svg.appendChild(svgEl('circle', {
+            cx: px, cy: py, r: '12',
+            fill: 'var(--point-color)', opacity: '0.15'
+        }));
+        svg.appendChild(svgEl('circle', {
+            cx: px, cy: py, r: '7',
+            fill: 'var(--point-color)', opacity: '0.25'
+        }));
+        // Point
+        svg.appendChild(svgEl('circle', {
+            cx: px, cy: py, r: '4.5',
+            fill: 'var(--point-color)',
+            stroke: 'white', 'stroke-width': '1.5'
+        }));
+    }
+}
+
+// ═══════════════════════════════════════════════
+// LOSS CHART
+// ═══════════════════════════════════════════════
+function renderLossChart() {
+    const svg = document.getElementById('loss-chart');
+    svg.innerHTML = '';
+
+    const CW = 800, CH = 180;
+    const cPad = { top: 10, right: 20, bottom: 25, left: 55 };
+    const cW = CW - cPad.left - cPad.right;
+    const cH = CH - cPad.top - cPad.bottom;
+
+    // Background
+    svg.appendChild(svgEl('rect', {
+        x: cPad.left, y: cPad.top, width: cW, height: cH,
+        fill: 'none'
+    }));
+
+    const losses = state.losses;
+    if (losses.length < 2) {
+        const label = document.getElementById('loss-label');
+        label.textContent = losses.length ? `Loss: ${losses[0].toFixed(4)}` : '';
+        // Empty state axes
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: cPad.top + cH, x2: cPad.left + cW, y2: cPad.top + cH,
+            stroke: 'var(--border)', 'stroke-width': '1'
+        }));
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
+            stroke: 'var(--border)', 'stroke-width': '1'
+        }));
+        return;
+    }
+
+    const maxLoss = Math.max(...losses.slice(0, 50)) * 1.1;
+    const minLoss = 0;
+    const xScale = cW / (losses.length - 1);
+    const yScale = cH / (maxLoss - minLoss || 1);
+
+    function cx(i) { return cPad.left + i * xScale; }
+    function cy(l) { return cPad.top + cH - (Math.min(l, maxLoss) - minLoss) * yScale; }
+
+    // Horizontal grid
+    const yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+        const val = minLoss + (maxLoss - minLoss) * (i / yTicks);
+        const yy = cy(val);
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: yy, x2: cPad.left + cW, y2: yy,
+            stroke: 'var(--border-light)', 'stroke-dasharray': '2 3', 'stroke-width': '0.5'
+        }));
+        const lbl = svgEl('text', {
+            x: cPad.left - 8, y: yy + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '9', 'font-family': 'JetBrains Mono, monospace'
+        });
+        lbl.textContent = val < 10 ? val.toFixed(2) : val.toFixed(0);
+        svg.appendChild(lbl);
+    }
+
+    // X axis
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top + cH, x2: cPad.left + cW, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+
+    // X axis label
+    const xLbl = svgEl('text', {
+        x: cPad.left + cW / 2, y: CH - 3,
+        'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+        'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+    });
+    xLbl.textContent = 'iteration';
+    svg.appendChild(xLbl);
+
+    // Gradient fill under curve
+    let areaD = `M${cx(0)} ${cy(losses[0])}`;
+    for (let i = 1; i < losses.length; i++) {
+        areaD += ` L${cx(i)} ${cy(losses[i])}`;
+    }
+    areaD += ` L${cx(losses.length - 1)} ${cPad.top + cH} L${cx(0)} ${cPad.top + cH} Z`;
+
+    const gradId = 'loss-grad';
+    const defs = svgEl('defs', {});
+    const grad = svgEl('linearGradient', { id: gradId, x1: '0', y1: '0', x2: '0', y2: '1' });
+    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--loss-line)', 'stop-opacity': '0.2' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--loss-line)', 'stop-opacity': '0.02' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    svg.appendChild(svgEl('path', {
+        d: areaD, fill: `url(#${gradId})`
+    }));
+
+    // Loss line
+    let lineD = `M${cx(0)} ${cy(losses[0])}`;
+    for (let i = 1; i < losses.length; i++) {
+        lineD += ` L${cx(i)} ${cy(losses[i])}`;
+    }
+    svg.appendChild(svgEl('path', {
+        d: lineD, fill: 'none', stroke: 'var(--loss-line)',
+        'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }));
+
+    // Current point
+    const lastI = losses.length - 1;
+    svg.appendChild(svgEl('circle', {
+        cx: cx(lastI), cy: cy(losses[lastI]), r: '4',
+        fill: 'var(--loss-line)', stroke: 'white', 'stroke-width': '1.5'
+    }));
+
+    document.getElementById('loss-label').textContent = `Loss: ${losses[lastI].toFixed(4)}`;
+}
+
+// ═══════════════════════════════════════════════
+// STATS & EQUATION
+// ═══════════════════════════════════════════════
+function updateStats() {
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    const mag = Math.sqrt(g1 * g1 + g2 * g2);
+    const l = loss(state.w[0], state.w[1]);
+    document.getElementById('stats').innerHTML = `
+        <div class="stat-item"><span class="stat-label">w&#8321;</span> <span class="stat-value">${state.w[0].toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">w&#8322;</span> <span class="stat-value">${state.w[1].toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">loss</span> <span class="stat-value">${l.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">|&#8711;f|</span> <span class="stat-value">${mag.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">iter</span> <span class="stat-value">${Math.max(0, state.path.length - 1)}</span></div>
+        <div class="stat-item"><span class="stat-label">lr</span> <span class="stat-value">${state.lr.toFixed(4)}</span></div>
+    `;
+}
+
+function updateEquation() {
+    const el = document.getElementById('equation');
+    const [g1, g2] = gradient(state.w[0], state.w[1]);
+    let html = '';
+    if (state.algo === 'gd') {
+        html = `<div class="equation-display">w \u2190 w \u2212 ${state.lr.toFixed(3)} \u00B7 \u2207f<br>\u2207f = [${g1.toFixed(2)}, ${g2.toFixed(2)}]</div>`;
+    } else if (state.algo === 'sgd') {
+        html = `<div class="equation-display">w \u2190 w \u2212 ${state.lr.toFixed(3)} \u00B7 (\u2207f + noise)<br>\u2207f = [${g1.toFixed(2)}, ${g2.toFixed(2)}]</div>`;
+    } else if (state.algo === 'momentum') {
+        html = `<div class="equation-display">v \u2190 ${state.beta.toFixed(2)}\u00B7v + \u2207f<br>w \u2190 w \u2212 ${state.lr.toFixed(3)} \u00B7 v<br>v = [${state.v[0].toFixed(2)}, ${state.v[1].toFixed(2)}]</div>`;
+    } else if (state.algo === 'adam') {
+        html = `<div class="equation-display">m \u2190 \u03B2\u2081m + (1\u2212\u03B2\u2081)\u2207f<br>s \u2190 \u03B2\u2082s + (1\u2212\u03B2\u2082)\u2207f\u00B2<br>w \u2190 w \u2212 lr \u00B7 m\u0302/(\u221As\u0302 + \u03B5)<br>t = ${state.t}</div>`;
+    }
+    el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════
+function buildControls() {
+    const slidersDiv = document.getElementById('sliders');
+    const togglesDiv = document.getElementById('toggles');
+    let slidersHTML = '';
+    let togglesHTML = '';
+
+    slidersHTML += `<div class="control-group">
+        <label>Learning Rate <span id="lr-v">${state.lr.toFixed(4)}</span></label>
+        <input type="range" id="lr-slider" min="0.001" max="0.2" step="0.001" value="${state.lr}">
+    </div>`;
+
+    if (state.algo === 'sgd') {
+        slidersHTML += `<div class="control-group">
+            <label>Noise Scale <span id="noise-v">${state.noiseScale.toFixed(2)}</span></label>
+            <input type="range" id="noise-slider" min="0" max="5" step="0.1" value="${state.noiseScale}">
+        </div>`;
+    }
+    if (state.algo === 'momentum') {
+        slidersHTML += `<div class="control-group">
+            <label>Beta (\u03B2) <span id="beta-v">${state.beta.toFixed(2)}</span></label>
+            <input type="range" id="beta-slider" min="0" max="0.99" step="0.01" value="${state.beta}">
+        </div>`;
+    }
+
+    slidersHTML += `<div class="control-group">
+        <label>Speed <span id="speed-v">${state.speed}x</span></label>
+        <input type="range" id="speed-slider" min="1" max="10" step="1" value="${state.speed}">
+    </div>`;
+
+    togglesHTML = `
+        <div class="checkbox-group">
+            <input type="checkbox" id="show-gradient" ${state.showGradient ? 'checked' : ''}>
+            <label for="show-gradient">Show gradient arrow</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="show-path" ${state.showPath ? 'checked' : ''}>
+            <label for="show-path">Show path trail</label>
+        </div>
+    `;
+
+    slidersDiv.innerHTML = slidersHTML;
+    togglesDiv.innerHTML = togglesHTML;
+
+    // Bind events
+    setTimeout(() => {
+        document.getElementById('lr-slider').addEventListener('input', e => {
+            state.lr = parseFloat(e.target.value);
+            document.getElementById('lr-v').textContent = state.lr.toFixed(4);
+            updateEquation();
+        });
+        if (state.algo === 'sgd') {
+            document.getElementById('noise-slider').addEventListener('input', e => {
+                state.noiseScale = parseFloat(e.target.value);
+                document.getElementById('noise-v').textContent = state.noiseScale.toFixed(2);
+            });
+        }
+        if (state.algo === 'momentum') {
+            document.getElementById('beta-slider').addEventListener('input', e => {
+                state.beta = parseFloat(e.target.value);
+                document.getElementById('beta-v').textContent = state.beta.toFixed(2);
+                updateEquation();
+            });
+        }
+        document.getElementById('speed-slider').addEventListener('input', e => {
+            state.speed = parseInt(e.target.value);
+            document.getElementById('speed-v').textContent = state.speed + 'x';
+        });
+        document.getElementById('show-gradient').addEventListener('change', e => {
+            state.showGradient = e.target.checked;
+            renderContour();
+        });
+        document.getElementById('show-path').addEventListener('change', e => {
+            state.showPath = e.target.checked;
+            renderContour();
+        });
+    }, 0);
+}
+
+// ═══════════════════════════════════════════════
+// INFO CARDS
+// ═══════════════════════════════════════════════
+function updateInfoCards() {
+    const d = document.getElementById('info-cards');
+    if (state.algo === 'gd') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Update Rule</h3>
+            <p><code>w = w - lr &middot; &nabla;f(w)</code></p>
+            <p>The simplest optimizer. At each step, move in the exact opposite direction of the gradient, scaled by the learning rate. With our loss f(w&#8321;, w&#8322;) = w&#8321;&sup2; + 10&middot;w&#8322;&sup2;, the gradient is [2w&#8321;, 20w&#8322;].</p>
+        </div>
+        <div class="info-card"><h3>Why the Zigzag?</h3>
+            <p>The loss surface is <em>elongated</em> (10x steeper in w&#8322;). The gradient always points perpendicular to contours, but that's not toward the minimum. The w&#8322; component overshoots while w&#8321; barely moves &mdash; classic oscillation on ill-conditioned surfaces.</p>
+        </div>
+        <div class="info-card"><h3>Convergence</h3>
+            <p>For convex quadratics, GD converges linearly. Optimal learning rate is <code>2/(&lambda;max + &lambda;min)</code> = 2/(20+2) &asymp; 0.09. Too large &rarr; divergence. Too small &rarr; glacial progress. The condition number &kappa; = 10 determines convergence speed.</p>
+        </div>`;
+    } else if (state.algo === 'sgd') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Why Stochastic?</h3>
+            <p>In real training, computing the <em>full</em> gradient over all data is expensive. SGD uses a random mini-batch, giving a noisy but unbiased gradient estimate. Here we simulate this with Gaussian noise added to the true gradient.</p>
+        </div>
+        <div class="info-card"><h3>Noise as Regularizer</h3>
+            <p>The noise isn't a bug &mdash; it's a feature. Stochastic gradients help escape <em>sharp minima</em> (which generalize poorly) and settle in <em>flat minima</em> (which generalize well). Higher noise scale = more exploration, less exploitation.</p>
+        </div>
+        <div class="info-card"><h3>Learning Rate &amp; Noise</h3>
+            <p>SGD needs a <em>smaller learning rate</em> than GD because the noise amplifies overshooting. The effective step size is <code>lr &middot; (gradient + noise)</code>. In practice, learning rate schedules (decay over time) help SGD converge despite noise.</p>
+        </div>`;
+    } else if (state.algo === 'momentum') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Update Rule</h3>
+            <p><code>v = &beta;&middot;v + &nabla;f(w)</code><br><code>w = w - lr &middot; v</code></p>
+            <p>Momentum accumulates a velocity vector v. The &beta; parameter (typically 0.9) determines how much past gradients influence the current step &mdash; like a ball rolling downhill with inertia.</p>
+        </div>
+        <div class="info-card"><h3>Why It Helps</h3>
+            <p>On our elongated surface, gradients in w&#8322; oscillate (alternating sign). Momentum <em>cancels these oscillations</em> because they average out. Meanwhile, the consistent w&#8321; gradient accumulates, accelerating progress along the valley floor.</p>
+        </div>
+        <div class="info-card"><h3>Choosing Beta</h3>
+            <p>&beta; = 0: equivalent to plain GD (no memory). &beta; = 0.9: remembers ~10 previous gradients. &beta; = 0.99: remembers ~100. Higher &beta; smooths more but reacts slower to direction changes. Try different values and watch the path change.</p>
+        </div>`;
+    } else if (state.algo === 'adam') {
+        d.innerHTML = `
+        <div class="info-card"><h3>Update Rule</h3>
+            <p><code>m = &beta;&#8321;&middot;m + (1-&beta;&#8321;)&middot;&nabla;f</code><br>
+            <code>s = &beta;&#8322;&middot;s + (1-&beta;&#8322;)&middot;&nabla;f&sup2;</code><br>
+            <code>w -= lr &middot; m&#770;/(&radic;s&#770; + &epsilon;)</code></p>
+            <p>Adam combines momentum (m) with <em>per-parameter adaptive learning rates</em> (s). Bias-corrected estimates m&#770;, s&#770; fix the initial zero-bias.</p>
+        </div>
+        <div class="info-card"><h3>Why Adam Converges Fast</h3>
+            <p>The second moment s tracks gradient <em>magnitude</em> per parameter. Large gradients (w&#8322;) get <em>divided</em> by their own variance, auto-shrinking the effective step. Small gradients (w&#8321;) get <em>boosted</em>. This equalizes progress across all dimensions.</p>
+        </div>
+        <div class="info-card"><h3>Default Hyperparameters</h3>
+            <p>&beta;&#8321; = 0.9, &beta;&#8322; = 0.999, &epsilon; = 10&#8315;&sup8;. These defaults work well across most problems. Adam is the <em>most popular optimizer</em> in deep learning because it needs minimal tuning. Learning rate ~0.001 is a common starting point.</p>
+        </div>`;
+    }
+}
+
+// ═══════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════
+
+// Algorithm tabs
+document.querySelectorAll('.algo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.algo-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.algo = tab.dataset.algo;
+        // Set default learning rates per algorithm
+        if (state.algo === 'gd') state.lr = 0.05;
+        else if (state.algo === 'sgd') state.lr = 0.02;
+        else if (state.algo === 'momentum') state.lr = 0.02;
+        else if (state.algo === 'adam') state.lr = 0.1;
+        resetOptimizer();
+        buildControls();
+        updateInfoCards();
+    });
+});
+
+// Click on contour plot to set start position
+document.getElementById('contour-plot').addEventListener('click', e => {
+    const svg = document.getElementById('contour-plot');
+    const rect = svg.getBoundingClientRect();
+    const scaleX = 500 / rect.width;
+    const scaleY = 500 / rect.height;
+    const svgX = (e.clientX - rect.left) * scaleX;
+    const svgY = (e.clientY - rect.top) * scaleY;
+    const w1 = px2w(svgX);
+    const w2 = py2w(svgY);
+    if (w1 >= DOMAIN[0] && w1 <= DOMAIN[1] && w2 >= DOMAIN[0] && w2 <= DOMAIN[1]) {
+        resetOptimizer(w1, w2);
+    }
+});
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+buildControls();
+updateInfoCards();
+resetOptimizer(state.startW[0], state.startW[1]);
+</script>
+</body>
+</html>
