@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gradient Descent &mdash; AI Fundamentals</title>
     <meta name="description" content="Interactive visualization of gradient descent optimizers on a 2D loss surface. Compare GD, SGD, Momentum, and Adam.">
+    <meta property="og:title" content="Gradient Descent — AI Fundamentals">
+    <meta property="og:description" content="Interactive visualization of gradient descent optimizers on a 2D loss surface. Compare GD, SGD, Momentum, and Adam.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mahesh-sadupalli.github.io/ai-fundamentals/gradient-descent/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Gradient Descent — AI Fundamentals">
+    <meta name="twitter:description" content="Interactive visualization of gradient descent optimizers on a 2D loss surface. Compare GD, SGD, Momentum, and Adam.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%2306B6D4'>∇</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -250,14 +258,6 @@
             box-shadow: var(--shadow-sm);
             position: relative;
             overflow: hidden;
-        }
-        .plot-accent {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--accent);
         }
         .plot-container svg {
             width: 100%;
@@ -614,23 +614,22 @@
         <!-- Algorithm Tabs + View Toggle -->
         <div class="tabs-row">
             <div class="algo-tabs" id="algo-tabs">
-                <button class="algo-tab active" data-algo="gd">GD</button>
-                <button class="algo-tab" data-algo="sgd">SGD</button>
-                <button class="algo-tab" data-algo="momentum">Momentum</button>
-                <button class="algo-tab" data-algo="adam">Adam</button>
+                <button class="algo-tab active" data-algo="gd" aria-label="Gradient Descent optimizer">GD</button>
+                <button class="algo-tab" data-algo="sgd" aria-label="Stochastic Gradient Descent optimizer">SGD</button>
+                <button class="algo-tab" data-algo="momentum" aria-label="Momentum optimizer">Momentum</button>
+                <button class="algo-tab" data-algo="adam" aria-label="Adam optimizer">Adam</button>
             </div>
             <div class="view-toggle">
-                <button class="view-btn active" data-view="2d">2D</button>
-                <button class="view-btn" data-view="3d">3D</button>
+                <button class="view-btn active" data-view="2d" aria-label="Switch to 2D contour view">2D</button>
+                <button class="view-btn" data-view="3d" aria-label="Switch to 3D surface view">3D</button>
             </div>
         </div>
 
         <!-- Main Grid -->
         <div class="main-grid">
             <div class="plot-container">
-                <div class="plot-accent"></div>
-                <svg id="contour-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
-                <canvas id="canvas-3d"></canvas>
+                <svg id="contour-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2D contour plot of the loss surface showing optimizer path"></svg>
+                <canvas id="canvas-3d" aria-label="3D surface view of the loss landscape"></canvas>
                 <div class="plot-hint" id="plot-hint">Click to set starting position</div>
             </div>
             <div class="controls-container" id="controls">
@@ -638,9 +637,9 @@
                 <div id="sliders"></div>
                 <div id="toggles"></div>
                 <div class="transport">
-                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()">&#9654; Play</button>
-                    <button class="transport-btn" onclick="stepOnce()">&#9193; Step</button>
-                    <button class="transport-btn" onclick="resetOptimizer()">&#8634; Reset</button>
+                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()" aria-label="Play or pause the optimizer animation">&#9654; Play</button>
+                    <button class="transport-btn" onclick="stepOnce()" aria-label="Advance optimizer by one step">&#9193; Step</button>
+                    <button class="transport-btn" onclick="resetOptimizer()" aria-label="Reset optimizer to starting position">&#8634; Reset</button>
                 </div>
                 <div class="stats-section">
                     <h3>Live Stats</h3>
@@ -1112,6 +1111,15 @@ function renderLossChart() {
             x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
             stroke: 'var(--border)', 'stroke-width': '1'
         }));
+        // Placeholder text
+        const hint = svgEl('text', {
+            x: cPad.left + cW / 2, y: cPad.top + cH / 2,
+            'text-anchor': 'middle', 'dominant-baseline': 'middle',
+            fill: 'var(--text-tertiary)', 'font-size': '13',
+            'font-family': 'Source Sans 3, sans-serif'
+        });
+        hint.textContent = 'Run the optimizer to see loss curve';
+        svg.appendChild(hint);
         return;
     }
 
@@ -1243,25 +1251,25 @@ function buildControls() {
 
     slidersHTML += `<div class="control-group">
         <label>Learning Rate <span id="lr-v">${state.lr.toFixed(4)}</span></label>
-        <input type="range" id="lr-slider" min="0.001" max="0.2" step="0.001" value="${state.lr}">
+        <input type="range" id="lr-slider" min="0.001" max="0.2" step="0.001" value="${state.lr}" aria-label="Learning rate">
     </div>`;
 
     if (state.algo === 'sgd') {
         slidersHTML += `<div class="control-group">
             <label>Noise Scale <span id="noise-v">${state.noiseScale.toFixed(2)}</span></label>
-            <input type="range" id="noise-slider" min="0" max="5" step="0.1" value="${state.noiseScale}">
+            <input type="range" id="noise-slider" min="0" max="5" step="0.1" value="${state.noiseScale}" aria-label="Noise scale">
         </div>`;
     }
     if (state.algo === 'momentum') {
         slidersHTML += `<div class="control-group">
             <label>Beta (\u03B2) <span id="beta-v">${state.beta.toFixed(2)}</span></label>
-            <input type="range" id="beta-slider" min="0" max="0.99" step="0.01" value="${state.beta}">
+            <input type="range" id="beta-slider" min="0" max="0.99" step="0.01" value="${state.beta}" aria-label="Beta momentum parameter">
         </div>`;
     }
 
     slidersHTML += `<div class="control-group">
         <label>Speed <span id="speed-v">${state.speed}x</span></label>
-        <input type="range" id="speed-slider" min="1" max="10" step="1" value="${state.speed}">
+        <input type="range" id="speed-slider" min="1" max="10" step="1" value="${state.speed}" aria-label="Animation speed">
     </div>`;
 
     togglesHTML = `
@@ -1367,7 +1375,7 @@ function updateInfoCards() {
             <p>The second moment s tracks gradient <em>magnitude</em> per parameter. Large gradients (w&#8322;) get <em>divided</em> by their own variance, auto-shrinking the effective step. Small gradients (w&#8321;) get <em>boosted</em>. This equalizes progress across all dimensions.</p>
         </div>
         <div class="info-card"><h3>Default Hyperparameters</h3>
-            <p>&beta;&#8321; = 0.9, &beta;&#8322; = 0.999, &epsilon; = 10&#8315;&sup8;. These defaults work well across most problems. Adam is the <em>most popular optimizer</em> in deep learning because it needs minimal tuning. Learning rate ~0.001 is a common starting point.</p>
+            <p>&beta;&#8321; = 0.9, &beta;&#8322; = 0.999, &epsilon; = 10⁻⁸. These defaults work well across most problems. Adam is the <em>most popular optimizer</em> in deep learning because it needs minimal tuning. Learning rate ~0.001 is a common starting point.</p>
         </div>`;
     }
 }
