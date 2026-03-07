@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diffusion Models &mdash; AI Fundamentals</title>
+    <meta name="description" content="Interactive visualization of how diffusion models work. Watch particles noise and denoise through the forward and reverse diffusion process.">
+    <meta property="og:title" content="Diffusion Models — AI Fundamentals">
+    <meta property="og:description" content="Interactive visualization of how diffusion models work. Watch particles noise and denoise through the forward and reverse diffusion process.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mahesh-sadupalli.github.io/ai-fundamentals/diffusion-models/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Diffusion Models — AI Fundamentals">
+    <meta name="twitter:description" content="Interactive visualization of how diffusion models work. Watch particles noise and denoise through the forward and reverse diffusion process.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%2306B6D4'>∇</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ========== CSS Custom Properties ========== */
+        :root {
+            --bg-primary: #FDF6F3;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #232F3E;
+            --text-secondary: #4A5568;
+            --text-tertiary: #8896A6;
+            --accent: #06B6D4;
+            --accent-hover: #0891B2;
+            --accent-light: rgba(6, 182, 212, 0.08);
+            --accent-glow: rgba(6, 182, 212, 0.15);
+            --accent-medium: rgba(6, 182, 212, 0.25);
+            --border: #E8DDD8;
+            --border-light: #F3EDE9;
+            --card-bg: #FFFFFF;
+            --surface: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(35, 47, 62, 0.04), 0 4px 12px rgba(35, 47, 62, 0.04);
+            --shadow-md: 0 4px 16px rgba(35, 47, 62, 0.08);
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --grid-color: #E8DDD8;
+            --axis-color: #8896A6;
+            --schedule-line: #8B5CF6;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1A2332;
+            --bg-secondary: #232F3E;
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --text-tertiary: #64748B;
+            --accent: #22D3EE;
+            --accent-hover: #06B6D4;
+            --accent-light: rgba(34, 211, 238, 0.1);
+            --accent-glow: rgba(34, 211, 238, 0.2);
+            --accent-medium: rgba(34, 211, 238, 0.3);
+            --border: #334155;
+            --border-light: #2D3B4E;
+            --card-bg: #232F3E;
+            --surface: #232F3E;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --grid-color: #334155;
+            --axis-color: #64748B;
+            --schedule-line: #A78BFA;
+        }
+
+        /* ========== Reset & Base ========== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ========== Nav ========== */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--accent); }
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+
+        /* ========== Header ========== */
+        .page-header {
+            margin-bottom: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 0.35rem;
+        }
+        .page-header h1 span { color: var(--accent); }
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Intro Text ========== */
+        .intro-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.75;
+            max-width: 780px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ========== Shape Tabs ========== */
+        .algo-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .algo-tab {
+            padding: 0.45rem 1rem;
+            border-radius: 100px;
+            font-size: 0.82rem;
+            font-family: var(--font-mono);
+            font-weight: 400;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .algo-tab:hover {
+            color: var(--text-secondary);
+            background: var(--accent-light);
+        }
+        .algo-tab.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* ========== View Toggle ========== */
+        .view-toggle {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: auto;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 3px;
+        }
+        .view-btn {
+            padding: 0.3rem 0.85rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .view-btn:hover { color: var(--text-secondary); }
+        .view-btn.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .tabs-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .tabs-row .algo-tabs { margin-bottom: 0; }
+
+        /* ========== Direction Toggle Pill ========== */
+        .direction-toggle {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 3px;
+        }
+        .direction-btn {
+            padding: 0.35rem 1rem;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-family: var(--font-mono);
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .direction-btn:hover { color: var(--text-secondary); }
+        .direction-btn.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        /* ========== Main Grid ========== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ========== Plot Container ========== */
+        .plot-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .plot-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        #canvas-3d {
+            width: 100%;
+            display: none;
+            cursor: grab;
+        }
+        #canvas-3d:active { cursor: grabbing; }
+        .plot-container.view-3d #scatter-plot { display: none; }
+        .plot-container.view-3d #canvas-3d { display: block; }
+
+        /* ========== Controls Panel ========== */
+        .controls-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .controls-container h2 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .control-group label span {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.82rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+        }
+
+        /* Checkbox toggle */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 34px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            flex-shrink: 0;
+        }
+        .checkbox-group input[type="checkbox"]::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transition: transform 0.25s ease;
+        }
+        .checkbox-group input[type="checkbox"]:checked { background: var(--accent); }
+        .checkbox-group input[type="checkbox"]:checked::after { transform: translateX(14px); }
+        .checkbox-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Transport buttons */
+        .transport {
+            display: flex;
+            gap: 8px;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .transport-btn {
+            flex: 1;
+            padding: 0.5rem 0;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .transport-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn.playing {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Stats display */
+        .stats-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 0.75rem;
+        }
+        .stats-section h3 {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .stat-item {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .stat-item .stat-label { color: var(--text-tertiary); }
+        .stat-item .stat-value { color: var(--accent); font-weight: 500; }
+
+        /* Equation display */
+        .equation-display {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            line-height: 1.6;
+            word-break: break-all;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ========== Schedule Chart ========== */
+        .schedule-chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .schedule-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .schedule-chart-header h3 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+        .schedule-chart-header span {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--schedule-line);
+            font-weight: 500;
+        }
+        .schedule-chart-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ========== Info Cards ========== */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .info-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .info-card:hover::before { opacity: 1; }
+        .info-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            padding-left: 0.75rem;
+        }
+        .info-card p, .info-card ul {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: 0.75rem;
+        }
+        .info-card ul { padding-left: 1.75rem; }
+        .info-card li { margin-bottom: 0.15rem; }
+        .info-card code {
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            background: var(--bg-primary);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .info-card em { color: var(--accent); font-style: italic; }
+
+        /* ========== Footer ========== */
+        .page-footer {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+            padding: 2rem 0 0.5rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 960px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 1.25rem 1rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .info-cards { grid-template-columns: 1fr; }
+            .algo-tabs { gap: 4px; }
+            .algo-tab { font-size: 0.72rem; padding: 0.35rem 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Nav -->
+        <div class="top-nav">
+            <a href="../" class="back-link">&larr; AI Fundamentals</a>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Diffusion <span>Models</span></h1>
+            <p class="page-subtitle">Chapter 7 &middot; Generative AI &mdash; Visualize the forward and reverse diffusion process</p>
+        </div>
+
+        <!-- Intro -->
+        <p class="intro-text">
+            Diffusion models generate data by learning to reverse a gradual noising process. In the <strong>forward process</strong>, structured data is slowly destroyed by adding Gaussian noise over many timesteps. The <strong>reverse process</strong> learns to undo this, recovering clean data from pure noise. Watch how particles transform between structure and randomness.
+        </p>
+
+        <!-- Shape Tabs + View Toggle -->
+        <div class="tabs-row">
+            <div class="algo-tabs" id="shape-tabs">
+                <button class="algo-tab active" data-shape="swiss-roll" aria-label="Swiss Roll shape">Swiss Roll</button>
+                <button class="algo-tab" data-shape="clusters" aria-label="Clusters shape">Clusters</button>
+                <button class="algo-tab" data-shape="moons" aria-label="Moons shape">Moons</button>
+                <button class="algo-tab" data-shape="circle" aria-label="Circle shape">Circle</button>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="2d" aria-label="Switch to 2D scatter view">2D</button>
+                <button class="view-btn" data-view="3d" aria-label="Switch to 3D particle view">3D</button>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <div class="plot-container" id="plot-container">
+                <svg id="scatter-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2D scatter plot showing diffusion particles"></svg>
+                <canvas id="canvas-3d" aria-label="3D particle view of diffusion process"></canvas>
+            </div>
+            <div class="controls-container">
+                <h2>Controls</h2>
+
+                <div class="control-group">
+                    <label>Timestep <span id="timestep-v">0 / 100</span></label>
+                    <input type="range" id="timestep-slider" min="0" max="100" step="1" value="0" aria-label="Timestep">
+                </div>
+
+                <div class="control-group" style="align-items:center;">
+                    <label style="margin-bottom:4px;">Direction</label>
+                    <div class="direction-toggle">
+                        <button class="direction-btn active" data-dir="forward" aria-label="Forward diffusion">Forward</button>
+                        <button class="direction-btn" data-dir="reverse" aria-label="Reverse diffusion">Reverse</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Speed <span id="speed-v">1x</span></label>
+                    <input type="range" id="speed-slider" min="1" max="10" step="1" value="1" aria-label="Animation speed">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="cosine-schedule">
+                    <label for="cosine-schedule">Cosine schedule</label>
+                </div>
+
+                <div class="transport">
+                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()" aria-label="Play or pause">&#9654; Play</button>
+                    <button class="transport-btn" onclick="stepOnce()" aria-label="Advance one step">&#9193; Step</button>
+                    <button class="transport-btn" onclick="resetDiffusion()" aria-label="Reset">&#8634; Reset</button>
+                </div>
+
+                <div class="stats-section">
+                    <h3>Live Stats</h3>
+                    <div class="stats-grid" id="stats"></div>
+                </div>
+
+                <div id="equation"></div>
+            </div>
+        </div>
+
+        <!-- Schedule Chart -->
+        <div class="schedule-chart-container">
+            <div class="schedule-chart-header">
+                <h3>&alpha;&#772;<sub>t</sub> Schedule</h3>
+                <span id="schedule-label"></span>
+            </div>
+            <svg id="schedule-chart" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards">
+            <div class="info-card">
+                <h3>Forward Process</h3>
+                <p>Starting from clean data x&#8320;, we gradually add Gaussian noise over T timesteps. At each step, a small amount of noise controlled by &beta;<sub>t</sub> is mixed in. The closed-form formula <code>x&#8348; = &radic;&alpha;&#772;&#8348; &middot; x&#8320; + &radic;(1-&alpha;&#772;&#8348;) &middot; &epsilon;</code> lets us jump to any timestep directly.</p>
+            </div>
+            <div class="info-card">
+                <h3>Reverse Process</h3>
+                <p>A neural network learns to predict the noise &epsilon; added at each step, then subtracts it to recover the signal. Moving from t=T (pure noise) back to t=0 (clean data) generates new samples. Here we show the <em>exact reverse</em> using stored noise, no network needed.</p>
+            </div>
+            <div class="info-card">
+                <h3>Noise Schedule</h3>
+                <p><strong>Linear:</strong> &beta; increases linearly from 0.0001 to 0.02. Simple but destroys signal quickly in later steps. <strong>Cosine:</strong> (Nichol &amp; Dhariwal 2021) keeps &alpha;&#772;<sub>t</sub> following a cosine curve, preserving more signal at high timesteps and producing <em>better sample quality</em>.</p>
+            </div>
+        </div>
+
+        <div class="page-footer">Chapter 7 &middot; Diffusion Models &mdash; AI Fundamentals</div>
+    </div>
+
+<script>
+// ===============================================
+// THEME
+// ===============================================
+function getTheme() {
+    const s = localStorage.getItem('ai-fund-theme');
+    if (s) return s;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const sun = document.querySelector('.icon-sun');
+    const moon = document.querySelector('.icon-moon');
+    if (sun && moon) {
+        sun.style.display = t === 'dark' ? 'none' : 'block';
+        moon.style.display = t === 'dark' ? 'block' : 'none';
+    }
+}
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ai-fund-theme', next);
+    applyTheme(next);
+    renderAll();
+}
+applyTheme(getTheme());
+
+// ===============================================
+// SVG HELPERS
+// ===============================================
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+}
+
+// ===============================================
+// STATE
+// ===============================================
+const NUM_POINTS = 300;
+const T = 100;
+let state = {
+    shape: 'swiss-roll',
+    t: 0,
+    direction: 'forward',
+    schedule: 'linear',
+    playing: false,
+    speed: 1,
+    viewMode: '2d',
+    x0: [],          // original clean data [x,y] per point
+    epsilon: [],     // stored noise [ex,ey] per point
+    alphaBarSchedule: [],
+    betaSchedule: []
+};
+
+// 3D view state
+let azimuth = -0.6;
+let elevation = 0.75;
+let isDragging3D = false;
+let dragStartX = 0;
+let dragStartAz = 0;
+
+// ===============================================
+// DATA GENERATORS
+// ===============================================
+function gaussianRandom() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function generateSwissRoll(n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+        const t = 1.5 * Math.PI * (1 + 2 * Math.random());
+        const x = t * Math.cos(t) * 0.2;
+        const y = t * Math.sin(t) * 0.2;
+        pts.push([x, y]);
+    }
+    return pts;
+}
+
+function generateClusters(n) {
+    const pts = [];
+    const centers = [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]];
+    for (let i = 0; i < n; i++) {
+        const c = centers[i % 4];
+        pts.push([c[0] + gaussianRandom() * 0.4, c[1] + gaussianRandom() * 0.4]);
+    }
+    return pts;
+}
+
+function generateMoons(n) {
+    const pts = [];
+    const half = Math.floor(n / 2);
+    for (let i = 0; i < half; i++) {
+        const angle = Math.PI * i / half;
+        pts.push([Math.cos(angle) * 1.5 + gaussianRandom() * 0.15, Math.sin(angle) * 1.5 + gaussianRandom() * 0.15]);
+    }
+    for (let i = 0; i < n - half; i++) {
+        const angle = Math.PI * i / (n - half);
+        pts.push([1 - Math.cos(angle) * 1.5 + gaussianRandom() * 0.15, 0.5 - Math.sin(angle) * 1.5 + gaussianRandom() * 0.15]);
+    }
+    return pts;
+}
+
+function generateCircle(n) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i) / n + gaussianRandom() * 0.05;
+        const r = 2 + gaussianRandom() * 0.15;
+        pts.push([r * Math.cos(angle), r * Math.sin(angle)]);
+    }
+    return pts;
+}
+
+const generators = {
+    'swiss-roll': generateSwissRoll,
+    'clusters': generateClusters,
+    'moons': generateMoons,
+    'circle': generateCircle
+};
+
+// ===============================================
+// DIFFUSION MATH
+// ===============================================
+function computeLinearSchedule() {
+    const betas = [];
+    const alphaBars = [];
+    let alphaBar = 1.0;
+    for (let t = 0; t <= T; t++) {
+        const beta = 0.0001 + (0.02 - 0.0001) * (t / T);
+        betas.push(beta);
+        if (t === 0) {
+            alphaBars.push(1.0);
+        } else {
+            alphaBar *= (1 - beta);
+            alphaBars.push(alphaBar);
+        }
+    }
+    return { betas, alphaBars };
+}
+
+function computeCosineSchedule() {
+    const s = 0.008;
+    const betas = [];
+    const alphaBars = [];
+    function fBar(t) {
+        return Math.pow(Math.cos(((t / T) + s) / (1 + s) * Math.PI / 2), 2);
+    }
+    const f0 = fBar(0);
+    for (let t = 0; t <= T; t++) {
+        const ab = fBar(t) / f0;
+        alphaBars.push(Math.max(ab, 0.001));
+        if (t === 0) {
+            betas.push(0);
+        } else {
+            const beta = 1 - (alphaBars[t] / alphaBars[t - 1]);
+            betas.push(Math.min(Math.max(beta, 0), 0.999));
+        }
+    }
+    return { betas, alphaBars };
+}
+
+function updateSchedule() {
+    const sched = state.schedule === 'cosine' ? computeCosineSchedule() : computeLinearSchedule();
+    state.alphaBarSchedule = sched.alphaBars;
+    state.betaSchedule = sched.betas;
+}
+
+function getCurrentPositions(t) {
+    const aBar = state.alphaBarSchedule[t];
+    const sqrtABar = Math.sqrt(aBar);
+    const sqrtOneMinusABar = Math.sqrt(1 - aBar);
+    const positions = [];
+    for (let i = 0; i < state.x0.length; i++) {
+        const x = sqrtABar * state.x0[i][0] + sqrtOneMinusABar * state.epsilon[i][0];
+        const y = sqrtABar * state.x0[i][1] + sqrtOneMinusABar * state.epsilon[i][1];
+        positions.push([x, y]);
+    }
+    return positions;
+}
+
+// ===============================================
+// PARTICLE COLOR
+// ===============================================
+function getParticleHue(i) {
+    // Color based on original position angle for trackability
+    const x = state.x0[i][0];
+    const y = state.x0[i][1];
+    return ((Math.atan2(y, x) / Math.PI + 1) * 180) % 360;
+}
+
+// ===============================================
+// COORDINATE MAPPING (2D scatter)
+// ===============================================
+const PAD = 40;
+const PW = 500, PH = 500;
+const PLOT_LEFT = PAD, PLOT_RIGHT = PW - 20;
+const PLOT_TOP = 20, PLOT_BOTTOM = PH - PAD;
+const INNER_W = PLOT_RIGHT - PLOT_LEFT;
+const INNER_H = PLOT_BOTTOM - PLOT_TOP;
+const DOMAIN = [-4, 4];
+
+function d2px(v) { return PLOT_LEFT + ((v - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_W; }
+function d2py(v) { return PLOT_BOTTOM - ((v - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_H; }
+
+// ===============================================
+// 2D SCATTER RENDERING
+// ===============================================
+function renderScatter() {
+    const svg = document.getElementById('scatter-plot');
+    svg.innerHTML = '';
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Background
+    svg.appendChild(svgEl('rect', {
+        x: PLOT_LEFT, y: PLOT_TOP, width: INNER_W, height: INNER_H,
+        fill: isDark ? '#1E293B' : '#FAFAF9', rx: '4'
+    }));
+
+    // Grid lines
+    const gridG = svgEl('g', {});
+    for (let w = -4; w <= 4; w++) {
+        if (w === 0) continue;
+        gridG.appendChild(svgEl('line', {
+            x1: d2px(w), y1: PLOT_TOP, x2: d2px(w), y2: PLOT_BOTTOM,
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+        gridG.appendChild(svgEl('line', {
+            x1: PLOT_LEFT, y1: d2py(w), x2: PLOT_RIGHT, y2: d2py(w),
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+    }
+    // Axes
+    gridG.appendChild(svgEl('line', {
+        x1: PLOT_LEFT, y1: d2py(0), x2: PLOT_RIGHT, y2: d2py(0),
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    gridG.appendChild(svgEl('line', {
+        x1: d2px(0), y1: PLOT_TOP, x2: d2px(0), y2: PLOT_BOTTOM,
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    svg.appendChild(gridG);
+
+    // Axis labels
+    for (let w = -4; w <= 4; w += 2) {
+        if (w === 0) continue;
+        const tx = svgEl('text', {
+            x: d2px(w), y: PLOT_BOTTOM + 16,
+            'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        tx.textContent = w;
+        svg.appendChild(tx);
+        const ty = svgEl('text', {
+            x: PLOT_LEFT - 8, y: d2py(w) + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        ty.textContent = w;
+        svg.appendChild(ty);
+    }
+
+    // Clip region
+    const clipId = 'scatter-clip';
+    const defs = svgEl('defs', {});
+    const clip = svgEl('clipPath', { id: clipId });
+    clip.appendChild(svgEl('rect', { x: PLOT_LEFT, y: PLOT_TOP, width: INNER_W, height: INNER_H }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    // Particles
+    const positions = getCurrentPositions(state.t);
+    const particleG = svgEl('g', { 'clip-path': `url(#${clipId})` });
+
+    for (let i = 0; i < positions.length; i++) {
+        const [x, y] = positions[i];
+        const hue = getParticleHue(i);
+        const sat = isDark ? '70%' : '65%';
+        const light = isDark ? '65%' : '50%';
+        const px = d2px(x);
+        const py = d2py(y);
+
+        // Glow
+        particleG.appendChild(svgEl('circle', {
+            cx: px, cy: py, r: '6',
+            fill: `hsla(${hue}, ${sat}, ${light}, 0.15)`
+        }));
+        // Point
+        particleG.appendChild(svgEl('circle', {
+            cx: px, cy: py, r: '3',
+            fill: `hsl(${hue}, ${sat}, ${light})`,
+            opacity: '0.85'
+        }));
+    }
+    svg.appendChild(particleG);
+
+    // Timestep label
+    const tLabel = svgEl('text', {
+        x: PLOT_RIGHT - 4, y: PLOT_TOP + 16,
+        'text-anchor': 'end', fill: 'var(--text-tertiary)',
+        'font-size': '12', 'font-family': 'JetBrains Mono, monospace', 'font-weight': '500'
+    });
+    tLabel.textContent = `t = ${state.t}`;
+    svg.appendChild(tLabel);
+}
+
+// ===============================================
+// 3D CANVAS RENDERING
+// ===============================================
+function project3D(x, y, z, canvasW, canvasH) {
+    const nx = x / 4;
+    const ny = y / 4;
+    const nz = z / 4;
+    const cosA = Math.cos(azimuth), sinA = Math.sin(azimuth);
+    const rx = nx * cosA - ny * sinA;
+    const ry = nx * sinA + ny * cosA;
+    const rz = nz;
+    const cosE = Math.cos(elevation), sinE = Math.sin(elevation);
+    const ty = ry * cosE - rz * sinE;
+    const tz = ry * sinE + rz * cosE;
+    const fov = 3.5;
+    const depth = fov + tz * 0.5;
+    const scale = fov / depth;
+    return {
+        x: canvasW / 2 + rx * scale * canvasW * 0.32,
+        y: canvasH * 0.52 - ty * scale * canvasH * 0.32,
+        depth: depth
+    };
+}
+
+function render3D() {
+    if (state.viewMode !== '3d') return;
+
+    const canvas = document.getElementById('canvas-3d');
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const w = rect.width;
+    const h = Math.min(w, 560);
+    canvas.width = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    canvas.style.height = h + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Clear
+    ctx.fillStyle = isDark ? '#1E293B' : '#FAFAF9';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw ground grid
+    const gridColor = isDark ? 'rgba(34,211,238,0.08)' : 'rgba(6,182,212,0.1)';
+    for (let g = -4; g <= 4; g++) {
+        const p1 = project3D(g, -4, 0, w, h);
+        const p2 = project3D(g, 4, 0, w, h);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5; ctx.stroke();
+
+        const p3 = project3D(-4, g, 0, w, h);
+        const p4 = project3D(4, g, 0, w, h);
+        ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y);
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5; ctx.stroke();
+    }
+
+    // Axes
+    const axisColor = isDark ? '#64748B' : '#8896A6';
+    const axisLen = 4.4;
+    const xS = project3D(-axisLen, 0, 0, w, h), xE = project3D(axisLen, 0, 0, w, h);
+    ctx.beginPath(); ctx.moveTo(xS.x, xS.y); ctx.lineTo(xE.x, xE.y);
+    ctx.strokeStyle = axisColor; ctx.lineWidth = 1; ctx.stroke();
+
+    const yS = project3D(0, -axisLen, 0, w, h), yE = project3D(0, axisLen, 0, w, h);
+    ctx.beginPath(); ctx.moveTo(yS.x, yS.y); ctx.lineTo(yE.x, yE.y);
+    ctx.strokeStyle = axisColor; ctx.lineWidth = 1; ctx.stroke();
+
+    // Labels
+    const labelColor = isDark ? '#94A3B8' : '#4A5568';
+    ctx.font = `12px 'JetBrains Mono', monospace`;
+    ctx.fillStyle = labelColor;
+    ctx.textAlign = 'center';
+    const lx = project3D(axisLen + 0.3, 0, 0, w, h);
+    ctx.fillText('x', lx.x, lx.y + 4);
+    const ly = project3D(0, axisLen + 0.3, 0, w, h);
+    ctx.fillText('y', ly.x, ly.y + 4);
+
+    // Particles - depth sorted
+    const positions = getCurrentPositions(state.t);
+    const particles = [];
+    for (let i = 0; i < positions.length; i++) {
+        const [px, py] = positions[i];
+        const z = 0; // flat on ground plane
+        const p = project3D(px, py, z, w, h);
+        particles.push({ i, sx: p.x, sy: p.y, depth: p.depth });
+    }
+    // Sort far to near
+    particles.sort((a, b) => b.depth - a.depth);
+
+    for (const p of particles) {
+        const hue = getParticleHue(p.i);
+        const sat = isDark ? '70%' : '65%';
+        const light = isDark ? '65%' : '50%';
+
+        // Glow
+        const grd = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, 8);
+        grd.addColorStop(0, `hsla(${hue}, ${sat}, ${light}, 0.3)`);
+        grd.addColorStop(1, `hsla(${hue}, ${sat}, ${light}, 0)`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(p.sx - 8, p.sy - 8, 16, 16);
+
+        // Point
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${hue}, ${sat}, ${light})`;
+        ctx.globalAlpha = 0.85;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+    }
+
+    // Timestep label
+    ctx.font = `13px 'JetBrains Mono', monospace`;
+    ctx.fillStyle = isDark ? '#94A3B8' : '#4A5568';
+    ctx.textAlign = 'right';
+    ctx.fillText(`t = ${state.t}`, w - 16, 24);
+
+    // Drag hint
+    if (!isDragging3D && state.t === 0) {
+        ctx.font = `11px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = isDark ? '#64748B' : '#8896A6';
+        ctx.textAlign = 'center';
+        ctx.fillText('Drag to rotate', w / 2, h - 12);
+    }
+}
+
+// ===============================================
+// SCHEDULE CHART
+// ===============================================
+function renderScheduleChart() {
+    const svg = document.getElementById('schedule-chart');
+    svg.innerHTML = '';
+
+    const CW = 800, CH = 180;
+    const cPad = { top: 10, right: 20, bottom: 25, left: 55 };
+    const cW = CW - cPad.left - cPad.right;
+    const cH = CH - cPad.top - cPad.bottom;
+
+    // Y axis: 0 to 1
+    function cx(t) { return cPad.left + (t / T) * cW; }
+    function cy(v) { return cPad.top + cH - v * cH; }
+
+    // Horizontal grid
+    for (let i = 0; i <= 5; i++) {
+        const val = i / 5;
+        const yy = cy(val);
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: yy, x2: cPad.left + cW, y2: yy,
+            stroke: 'var(--border-light)', 'stroke-dasharray': '2 3', 'stroke-width': '0.5'
+        }));
+        const lbl = svgEl('text', {
+            x: cPad.left - 8, y: yy + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '9', 'font-family': 'JetBrains Mono, monospace'
+        });
+        lbl.textContent = val.toFixed(1);
+        svg.appendChild(lbl);
+    }
+
+    // Axes
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top + cH, x2: cPad.left + cW, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+
+    // X axis label
+    const xLbl = svgEl('text', {
+        x: cPad.left + cW / 2, y: CH - 3,
+        'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+        'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+    });
+    xLbl.textContent = 'timestep t';
+    svg.appendChild(xLbl);
+
+    // Y axis label
+    const yLbl = svgEl('text', {
+        x: 8, y: cPad.top + cH / 2,
+        'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+        'font-size': '10', 'font-family': 'JetBrains Mono, monospace',
+        'transform': `rotate(-90, 8, ${cPad.top + cH / 2})`
+    });
+    yLbl.textContent = '\u0101\u0304t';
+    svg.appendChild(yLbl);
+
+    // Gradient fill under curve
+    const gradId = 'sched-grad';
+    const defs = svgEl('defs', {});
+    const grad = svgEl('linearGradient', { id: gradId, x1: '0', y1: '0', x2: '0', y2: '1' });
+    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': 'var(--schedule-line)', 'stop-opacity': '0.2' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': 'var(--schedule-line)', 'stop-opacity': '0.02' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    let areaD = '';
+    let lineD = '';
+    for (let t = 0; t <= T; t++) {
+        const val = state.alphaBarSchedule[t];
+        const px = cx(t), py = cy(val);
+        if (t === 0) {
+            areaD = `M${px} ${py}`;
+            lineD = `M${px} ${py}`;
+        } else {
+            areaD += ` L${px} ${py}`;
+            lineD += ` L${px} ${py}`;
+        }
+    }
+    areaD += ` L${cx(T)} ${cPad.top + cH} L${cx(0)} ${cPad.top + cH} Z`;
+
+    svg.appendChild(svgEl('path', { d: areaD, fill: `url(#${gradId})` }));
+    svg.appendChild(svgEl('path', {
+        d: lineD, fill: 'none', stroke: 'var(--schedule-line)',
+        'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }));
+
+    // Vertical marker at current timestep
+    const markerX = cx(state.t);
+    svg.appendChild(svgEl('line', {
+        x1: markerX, y1: cPad.top, x2: markerX, y2: cPad.top + cH,
+        stroke: 'var(--accent)', 'stroke-width': '1.5', 'stroke-dasharray': '4 3', opacity: '0.7'
+    }));
+
+    // Dot on the curve at current t
+    const curVal = state.alphaBarSchedule[state.t];
+    svg.appendChild(svgEl('circle', {
+        cx: markerX, cy: cy(curVal), r: '4',
+        fill: 'var(--schedule-line)', stroke: 'white', 'stroke-width': '1.5'
+    }));
+
+    // Label
+    document.getElementById('schedule-label').textContent =
+        `\u0101\u0304${state.t} = ${curVal.toFixed(4)}  |  ${state.schedule === 'cosine' ? 'Cosine' : 'Linear'}`;
+}
+
+// ===============================================
+// STATS & EQUATION
+// ===============================================
+function updateStats() {
+    const t = state.t;
+    const aBar = state.alphaBarSchedule[t];
+    const beta = state.betaSchedule[t];
+    const snr = aBar / (1 - aBar + 1e-10);
+    const signalPct = (Math.sqrt(aBar) * 100).toFixed(1);
+    const noisePct = (Math.sqrt(1 - aBar) * 100).toFixed(1);
+
+    document.getElementById('stats').innerHTML = `
+        <div class="stat-item"><span class="stat-label">t / T</span> <span class="stat-value">${t} / ${T}</span></div>
+        <div class="stat-item"><span class="stat-label">\u0101\u0304<sub>t</sub></span> <span class="stat-value">${aBar.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">\u03B2<sub>t</sub></span> <span class="stat-value">${beta.toFixed(5)}</span></div>
+        <div class="stat-item"><span class="stat-label">SNR</span> <span class="stat-value">${snr < 1000 ? snr.toFixed(2) : '\u221E'}</span></div>
+        <div class="stat-item"><span class="stat-label">signal</span> <span class="stat-value">${signalPct}%</span></div>
+        <div class="stat-item"><span class="stat-label">noise</span> <span class="stat-value">${noisePct}%</span></div>
+    `;
+}
+
+function updateEquation() {
+    const t = state.t;
+    const aBar = state.alphaBarSchedule[t];
+    const sqrtA = Math.sqrt(aBar).toFixed(3);
+    const sqrtOmA = Math.sqrt(1 - aBar).toFixed(3);
+    document.getElementById('equation').innerHTML = `
+        <div class="equation-display">
+            x<sub>t</sub> = ${sqrtA} \u00B7 x<sub>0</sub> + ${sqrtOmA} \u00B7 \u03B5<br>
+            <span style="color:var(--text-tertiary);font-size:0.65rem;">
+                \u221A\u0101\u0304<sub>t</sub> = ${sqrtA} &nbsp;&nbsp; \u221A(1\u2212\u0101\u0304<sub>t</sub>) = ${sqrtOmA}
+            </span>
+        </div>`;
+}
+
+// ===============================================
+// RENDER ALL
+// ===============================================
+function renderAll() {
+    renderScatter();
+    render3D();
+    renderScheduleChart();
+    updateStats();
+    updateEquation();
+}
+
+// ===============================================
+// ANIMATION
+// ===============================================
+let animId = null;
+let lastTime = 0;
+
+function animate(timestamp) {
+    if (!state.playing) return;
+    const interval = Math.max(16, 200 / state.speed);
+    if (timestamp - lastTime >= interval) {
+        if (state.direction === 'forward') {
+            if (state.t < T) {
+                state.t++;
+            } else {
+                pause();
+                return;
+            }
+        } else {
+            if (state.t > 0) {
+                state.t--;
+            } else {
+                pause();
+                return;
+            }
+        }
+        document.getElementById('timestep-slider').value = state.t;
+        renderAll();
+        lastTime = timestamp;
+    }
+    if (state.playing) {
+        animId = requestAnimationFrame(animate);
+    }
+}
+
+function play() {
+    // If at boundary, wrap to the other end
+    if (state.direction === 'forward' && state.t >= T) state.t = 0;
+    if (state.direction === 'reverse' && state.t <= 0) state.t = T;
+    document.getElementById('timestep-slider').value = state.t;
+
+    state.playing = true;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9646;&#9646; Pause';
+    btn.classList.add('playing');
+    lastTime = 0;
+    animId = requestAnimationFrame(animate);
+}
+
+function pause() {
+    state.playing = false;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9654; Play';
+    btn.classList.remove('playing');
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+}
+
+function togglePlay() {
+    if (state.playing) pause(); else play();
+}
+
+function stepOnce() {
+    pause();
+    if (state.direction === 'forward' && state.t < T) {
+        state.t++;
+    } else if (state.direction === 'reverse' && state.t > 0) {
+        state.t--;
+    }
+    document.getElementById('timestep-slider').value = state.t;
+    renderAll();
+}
+
+function resetDiffusion() {
+    pause();
+    state.t = state.direction === 'forward' ? 0 : T;
+    document.getElementById('timestep-slider').value = state.t;
+    initData();
+    renderAll();
+}
+
+// ===============================================
+// INITIALIZATION
+// ===============================================
+function initData() {
+    state.x0 = generators[state.shape](NUM_POINTS);
+    state.epsilon = [];
+    for (let i = 0; i < NUM_POINTS; i++) {
+        state.epsilon.push([gaussianRandom(), gaussianRandom()]);
+    }
+    updateSchedule();
+}
+
+// ===============================================
+// EVENT BINDINGS
+// ===============================================
+
+// Shape tabs
+document.querySelectorAll('#shape-tabs .algo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('#shape-tabs .algo-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.shape = tab.dataset.shape;
+        pause();
+        state.t = 0;
+        document.getElementById('timestep-slider').value = 0;
+        initData();
+        renderAll();
+    });
+});
+
+// View toggle
+document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.viewMode = btn.dataset.view;
+        const plotContainer = document.getElementById('plot-container');
+        if (state.viewMode === '3d') {
+            plotContainer.classList.add('view-3d');
+            render3D();
+        } else {
+            plotContainer.classList.remove('view-3d');
+            renderScatter();
+        }
+    });
+});
+
+// Direction toggle
+document.querySelectorAll('.direction-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.direction-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.direction = btn.dataset.dir;
+    });
+});
+
+// Timestep slider
+document.getElementById('timestep-slider').addEventListener('input', e => {
+    pause();
+    state.t = parseInt(e.target.value);
+    renderAll();
+});
+
+// Speed slider
+document.getElementById('speed-slider').addEventListener('input', e => {
+    state.speed = parseInt(e.target.value);
+    document.getElementById('speed-v').textContent = state.speed + 'x';
+});
+
+// Cosine schedule toggle
+document.getElementById('cosine-schedule').addEventListener('change', e => {
+    state.schedule = e.target.checked ? 'cosine' : 'linear';
+    updateSchedule();
+    renderAll();
+});
+
+// 3D interaction
+(function setup3DInteraction() {
+    const canvas = document.getElementById('canvas-3d');
+
+    canvas.addEventListener('mousedown', e => {
+        isDragging3D = true;
+        dragStartX = e.clientX;
+        dragStartAz = azimuth;
+        e.preventDefault();
+    });
+    window.addEventListener('mousemove', e => {
+        if (!isDragging3D) return;
+        azimuth = dragStartAz + (e.clientX - dragStartX) * 0.008;
+        render3D();
+    });
+    window.addEventListener('mouseup', () => { isDragging3D = false; });
+
+    canvas.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            isDragging3D = true;
+            dragStartX = e.touches[0].clientX;
+            dragStartAz = azimuth;
+            e.preventDefault();
+        }
+    }, { passive: false });
+    window.addEventListener('touchmove', e => {
+        if (!isDragging3D || e.touches.length !== 1) return;
+        azimuth = dragStartAz + (e.touches[0].clientX - dragStartX) * 0.008;
+        render3D();
+    });
+    window.addEventListener('touchend', () => { isDragging3D = false; });
+
+    window.addEventListener('resize', () => {
+        if (state.viewMode === '3d') render3D();
+    });
+})();
+
+// ===============================================
+// INIT
+// ===============================================
+initData();
+renderAll();
+</script>
+</body>
+</html>
