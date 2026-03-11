@@ -494,8 +494,25 @@
             line-height: 1.65;
             padding-left: 0.75rem;
         }
-        .info-card ul { padding-left: 1.75rem; }
-        .info-card li { margin-bottom: 0.15rem; }
+        .info-card ul {
+            padding-left: 1.75rem;
+            list-style-type: none;
+        }
+        .info-card ul li {
+            margin-bottom: 0.25rem;
+            position: relative;
+        }
+        .info-card ul li::before {
+            content: '';
+            position: absolute;
+            left: -14px;
+            top: 8px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.5;
+        }
         .info-card code {
             font-family: var(--font-mono);
             font-size: 0.73rem;
@@ -675,7 +692,6 @@ function svgEl(tag, attrs) {
 // MATH HELPERS
 // ===============================================
 function erf(x) {
-    // Abramowitz & Stegun approximation (max error 1.5e-7)
     const sign = x >= 0 ? 1 : -1;
     x = Math.abs(x);
     const t = 1 / (1 + 0.3275911 * x);
@@ -702,7 +718,6 @@ function logFactorial(n) {
         logFactorialCache[n] = val;
         return val;
     }
-    // Stirling's approximation
     const v = n * Math.log(n) - n + 0.5 * Math.log(2 * Math.PI * n) + 1 / (12 * n);
     logFactorialCache[n] = v;
     return v;
@@ -722,7 +737,6 @@ function binomialCDF(k, n, p) {
     return Math.min(sum, 1);
 }
 
-// Box-Muller transform
 function gaussianRandom(mu, sigma) {
     let u = 0, v = 0;
     while (u === 0) u = Math.random();
@@ -754,9 +768,9 @@ const DISTRIBUTIONS = {
             return `f(x) = (1/(\u03C3\u221A2\u03C0)) exp(-\u00BD((x-\u03BC)/\u03C3)\u00B2)\n\u03BC=${p.mu.toFixed(1)}, \u03C3=${p.sigma.toFixed(1)}`;
         },
         infoCards: [
-            { title: 'Bell Curve', text: 'The Gaussian distribution is symmetric around its mean \u03BC. About 68% of values fall within 1\u03C3, 95% within 2\u03C3, and 99.7% within 3\u03C3 of the mean \u2014 the famous <em>68-95-99.7 rule</em>.' },
-            { title: 'Central Limit Theorem', text: 'The sum of many independent random variables tends toward a Gaussian, regardless of their individual distributions. This is why the bell curve appears so frequently in nature and measurement.' },
-            { title: 'In Machine Learning', text: 'Weight initialization, noise injection, Bayesian priors, and variational autoencoders all rely on Gaussian distributions. The <em>reparameterization trick</em> <code>z = \u03BC + \u03C3\u03B5</code> enables gradient-based learning.' }
+            { title: 'What It Is', html: '<p>The <em>Gaussian</em> (normal) distribution is a symmetric, bell-shaped continuous distribution and the most important distribution in all of statistics. It is fully defined by two parameters: the mean \u03BC (center) and standard deviation \u03C3 (spread). The Central Limit Theorem guarantees that the sum of many independent random variables tends toward a Gaussian, which is why it appears everywhere in nature.</p>' },
+            { title: 'Key Properties', html: '<ul><li><strong>68-95-99.7 Rule:</strong> 68% of values within \u00B11\u03C3, 95% within \u00B12\u03C3, 99.7% within \u00B13\u03C3</li><li><strong>Symmetric:</strong> mean = median = mode = \u03BC</li><li><strong>Additive:</strong> sum of independent Gaussians is Gaussian</li><li><strong>Maximum entropy</strong> distribution for a given mean and variance</li><li>Skewness = 0, Kurtosis = 3 (mesokurtic)</li><li>Fully specified by just \u03BC and \u03C3</li></ul>' },
+            { title: 'Applications', html: '<ul><li><strong>Natural phenomena:</strong> heights, IQ scores, measurement errors</li><li><strong>Finance:</strong> stock returns, risk modeling (VaR)</li><li><strong>ML &mdash; Weight init:</strong> He/Xavier initialization uses N(0, \u03C3\u00B2)</li><li><strong>ML &mdash; VAEs:</strong> reparameterization trick <code>z = \u03BC + \u03C3\u03B5</code></li><li><strong>ML &mdash; Diffusion:</strong> Gaussian noise in forward process</li><li><strong>Bayesian inference:</strong> conjugate prior for Gaussian likelihood</li></ul>' }
         ]
     },
     binomial: {
@@ -783,9 +797,9 @@ const DISTRIBUTIONS = {
             return `P(X=k) = C(n,k) p\u1D4F (1-p)\u207F\u207B\u1D4F\nn=${p.n}, p=${p.p.toFixed(2)}`;
         },
         infoCards: [
-            { title: 'Sum of Trials', text: 'The Binomial distribution counts successes in <em>n</em> independent Bernoulli trials, each with success probability <em>p</em>. For example, flipping a coin 10 times and counting heads.' },
-            { title: 'Shape & Symmetry', text: 'When p=0.5 the distribution is symmetric. As p deviates from 0.5, it becomes skewed. For large n, the Binomial approximates a Gaussian with \u03BC=np and \u03C3\u00B2=np(1-p).' },
-            { title: 'In Machine Learning', text: 'Binary classification likelihood, dropout regularization (each neuron is a Bernoulli trial), and <em>Binomial deviance</em> loss all connect to this distribution.' }
+            { title: 'What It Is', html: '<p>The <em>Binomial</em> distribution counts the number of successes in <strong>n</strong> independent trials, each with the same success probability <strong>p</strong>. Think of it as flipping a (possibly biased) coin n times and counting heads. Each individual trial follows a Bernoulli distribution, and the Binomial is their sum: X = X\u2081 + X\u2082 + \u2026 + X\u2099.</p>' },
+            { title: 'Key Properties', html: '<ul><li><strong>E[X] = np</strong>, Var(X) = np(1\u2212p)</li><li><strong>Symmetric</strong> when p = 0.5, skewed otherwise</li><li>Approaches <strong>Gaussian</strong> for large n (rule of thumb: np > 5 and n(1\u2212p) > 5)</li><li>Approaches <strong>Poisson</strong> when n is large and p is small</li><li>Sum of independent Binomials (same p) is Binomial</li><li>Mode = \u230A(n+1)p\u230B or \u230A(n+1)p\u230B\u22121</li></ul>' },
+            { title: 'Applications', html: '<ul><li><strong>Quality control:</strong> defective items in a manufacturing batch</li><li><strong>A/B testing:</strong> conversion counts in experiments</li><li><strong>Clinical trials:</strong> number of patients responding to treatment</li><li><strong>Election forecasting:</strong> vote counting models</li><li><strong>ML &mdash; Dropout:</strong> each neuron kept/dropped is a Bernoulli trial; total kept \u223C Binomial</li><li><strong>ML &mdash; Ensemble:</strong> majority voting in classifier ensembles</li></ul>' }
         ]
     },
     bernoulli: {
@@ -815,9 +829,9 @@ const DISTRIBUTIONS = {
             return `P(X=k) = p\u1D4F (1-p)\u00B9\u207B\u1D4F,  k \u2208 {0,1}\np=${p.p.toFixed(2)}`;
         },
         infoCards: [
-            { title: 'Single Trial', text: 'The simplest discrete distribution: outcome is either 0 (failure) or 1 (success) with probability <em>p</em>. It is a special case of the Binomial with n=1.' },
-            { title: 'Building Block', text: 'Many complex distributions build on Bernoulli trials. The sum of n independent Bernoulli trials gives a Binomial. The number of trials until first success gives a Geometric distribution.' },
-            { title: 'In Machine Learning', text: 'Binary classification outputs follow a Bernoulli distribution. The <em>binary cross-entropy</em> loss is derived from the Bernoulli log-likelihood: <code>-[y log p + (1-y) log(1-p)]</code>.' }
+            { title: 'What It Is', html: '<p>The <em>Bernoulli</em> distribution is the simplest discrete distribution &mdash; a single trial with exactly two outcomes: <strong>success</strong> (X=1) with probability p, or <strong>failure</strong> (X=0) with probability 1\u2212p. It is the fundamental building block for many other distributions: the sum of n Bernoulli trials gives a Binomial, and the count until first success gives a Geometric.</p>' },
+            { title: 'Key Properties', html: '<ul><li><strong>E[X] = p</strong>, Var(X) = p(1\u2212p)</li><li>Special case of <strong>Binomial(n=1, p)</strong></li><li>Maximum variance = 0.25, at p = 0.5</li><li>Maximum entropy at p = 0.5 (1 bit)</li><li>Support: {0, 1} &mdash; only two outcomes</li><li>MGF: M(t) = (1\u2212p) + pe\u1D57</li></ul>' },
+            { title: 'Applications', html: '<ul><li><strong>Coin flips:</strong> the canonical example (fair coin: p=0.5)</li><li><strong>Binary classification:</strong> logistic regression models P(y=1|x) as Bernoulli</li><li><strong>Cross-entropy loss:</strong> derived from Bernoulli log-likelihood: <code>\u2212[y log p + (1\u2212y) log(1\u2212p)]</code></li><li><strong>ML &mdash; Dropout:</strong> each mask bit is Bernoulli(p)</li><li><strong>ML &mdash; Naive Bayes:</strong> Bernoulli NB for binary features</li><li><strong>Graph theory:</strong> Erd\u0151s\u2013R\u00E9nyi random graphs use Bernoulli edges</li></ul>' }
         ]
     },
     uniform: {
@@ -847,9 +861,9 @@ const DISTRIBUTIONS = {
             return `f(x) = 1/(b-a) for a \u2264 x \u2264 b\na=${p.a.toFixed(1)}, b=${p.b.toFixed(1)}`;
         },
         infoCards: [
-            { title: 'Equal Probability', text: 'Every value in the interval [a, b] is equally likely. The PDF is a flat rectangle with height 1/(b\u2212a), ensuring the total area under the curve is 1.' },
-            { title: 'Maximum Entropy', text: 'Among all continuous distributions on a bounded interval, the Uniform has the <em>highest entropy</em>. It represents complete ignorance about which value will occur within the range.' },
-            { title: 'In Machine Learning', text: 'Random number generation, <em>Xavier/He initialization</em> variants, uniform priors in Bayesian inference, and random search hyperparameter tuning all use uniform distributions.' }
+            { title: 'What It Is', html: '<p>The <em>Uniform</em> distribution assigns equal probability to every value in the interval [a, b]. Its PDF is a flat rectangle of height 1/(b\u2212a), making it the simplest continuous distribution. It represents <strong>complete ignorance</strong> &mdash; when you know the range but have no reason to favor any value over another.</p>' },
+            { title: 'Key Properties', html: '<ul><li><strong>E[X] = (a+b)/2</strong>, Var(X) = (b\u2212a)\u00B2/12</li><li><strong>CDF is linear</strong> &mdash; a straight line from 0 to 1</li><li><strong>Maximum entropy</strong> on a bounded interval</li><li>Symmetric about the midpoint (a+b)/2</li><li>Skewness = 0, Kurtosis = 1.8 (platykurtic)</li><li><strong>Inverse CDF trick:</strong> F\u207B\u00B9(U) transforms U\u223CUniform(0,1) into any target distribution</li></ul>' },
+            { title: 'Applications', html: '<ul><li><strong>Random number generation:</strong> foundation of all sampling &mdash; every RNG starts with Uniform(0,1)</li><li><strong>Monte Carlo methods:</strong> uniform sampling for integration</li><li><strong>Bayesian inference:</strong> uninformative (flat) prior</li><li><strong>ML &mdash; Random search:</strong> hyperparameter tuning samples uniformly</li><li><strong>ML &mdash; Weight init:</strong> Xavier uniform: U(\u2212\u221A(6/(n_in+n_out)), +\u221A(6/(n_in+n_out)))</li><li><strong>Quantization noise:</strong> rounding errors \u223C Uniform(\u22120.5, 0.5)</li></ul>' }
         ]
     },
     exponential: {
@@ -871,9 +885,9 @@ const DISTRIBUTIONS = {
             return `f(x) = \u03BB e\u207B\u1D8F\u02E3,  x \u2265 0\n\u03BB=${p.lambda.toFixed(1)}`;
         },
         infoCards: [
-            { title: 'Waiting Times', text: 'The Exponential distribution models time between events in a Poisson process. With rate \u03BB, the expected waiting time is 1/\u03BB. It is the continuous analog of the Geometric distribution.' },
-            { title: 'Memoryless Property', text: 'The only continuous distribution with the <em>memoryless property</em>: P(X > s+t | X > s) = P(X > t). Past waiting time gives no information about remaining time.' },
-            { title: 'In Machine Learning', text: 'Models inter-arrival times in streaming data, lifetime/survival analysis, and serves as a prior for rate parameters. The <em>Exponential family</em> of distributions forms the backbone of generalized linear models.' }
+            { title: 'What It Is', html: '<p>The <em>Exponential</em> distribution models the <strong>waiting time</strong> between events in a Poisson process with rate \u03BB. If events occur randomly at an average rate of \u03BB per unit time, the time until the next event follows Exp(\u03BB). It is the continuous counterpart of the Geometric distribution and the only continuous distribution with the <em>memoryless property</em>.</p>' },
+            { title: 'Key Properties', html: '<ul><li><strong>E[X] = 1/\u03BB</strong>, Var(X) = 1/\u03BB\u00B2</li><li><strong>Memoryless:</strong> P(X > s+t | X > s) = P(X > t)</li><li><strong>CDF:</strong> F(x) = 1 \u2212 e<sup>\u2212\u03BBx</sup> &mdash; simple closed form</li><li>Median = ln(2)/\u03BB \u2248 0.693/\u03BB</li><li>Skewness = 2 (always right-skewed)</li><li>P(X \u2264 1/\u03BB) \u2248 63.2% &mdash; most of the mass is near zero</li></ul>' },
+            { title: 'Applications', html: '<ul><li><strong>Reliability engineering:</strong> time to failure of components</li><li><strong>Queuing theory:</strong> inter-arrival and service times</li><li><strong>Radioactive decay:</strong> time between decay events</li><li><strong>Network traffic:</strong> packet inter-arrival times</li><li><strong>Survival analysis:</strong> baseline hazard in medicine</li><li><strong>ML &mdash; GLMs:</strong> member of the exponential family; backbone of generalized linear models</li></ul>' }
         ]
     }
 };
@@ -923,7 +937,6 @@ showPDFCheckbox.addEventListener('change', () => {
     renderAll();
 });
 
-// Distribution tabs
 document.querySelectorAll('#dist-tabs .algo-tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelector('#dist-tabs .algo-tab.active').classList.remove('active');
@@ -957,7 +970,6 @@ function buildParamControls() {
         const slider = group.querySelector('input');
         slider.addEventListener('input', () => {
             let v = parseFloat(slider.value);
-            // Enforce a < b for uniform
             if (state.dist === 'uniform') {
                 if (c.key === 'a' && v >= state.params.b) v = state.params.b - c.step;
                 if (c.key === 'b' && v <= state.params.a) v = state.params.a + c.step;
@@ -1020,7 +1032,48 @@ function tick() {
 }
 
 // ===============================================
-// RENDERING — HISTOGRAM
+// ANNOTATION HELPERS
+// ===============================================
+function makeFilledRegion(x1, x2, steps, pdfFn, xScale, yScale, H) {
+    let path = `M${xScale(x1).toFixed(1)},${H}`;
+    for (let i = 0; i <= steps; i++) {
+        const x = x1 + (x2 - x1) * i / steps;
+        path += `L${xScale(x).toFixed(1)},${yScale(pdfFn(x)).toFixed(1)}`;
+    }
+    path += `L${xScale(x2).toFixed(1)},${H}Z`;
+    return path;
+}
+
+function drawBracket(g, x1, x2, y, label, color, fontSize) {
+    const capH = 4;
+    g.appendChild(svgEl('line', { x1: x1, y1: y, x2: x2, y2: y, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
+    g.appendChild(svgEl('line', { x1: x1, y1: y + capH, x2: x1, y2: y - capH, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
+    g.appendChild(svgEl('line', { x1: x2, y1: y + capH, x2: x2, y2: y - capH, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
+    const t = svgEl('text', {
+        x: (x1 + x2) / 2, y: y - 6, 'text-anchor': 'middle',
+        fill: color, 'font-family': 'var(--font-mono)', 'font-size': fontSize || '10', 'font-weight': '600'
+    });
+    t.textContent = label;
+    g.appendChild(t);
+}
+
+function drawMeanLine(g, xPos, yTop, yBot, label, color, labelY, anchorSide) {
+    g.appendChild(svgEl('line', {
+        x1: xPos, y1: yTop, x2: xPos, y2: yBot,
+        stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '6,4', opacity: 0.6
+    }));
+    const dx = anchorSide === 'left' ? -6 : 6;
+    const anchor = anchorSide === 'left' ? 'end' : 'start';
+    const t = svgEl('text', {
+        x: xPos + dx, y: labelY, 'text-anchor': anchor,
+        fill: color, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
+    });
+    t.textContent = label;
+    g.appendChild(t);
+}
+
+// ===============================================
+// RENDERING — HISTOGRAM + ANNOTATIONS
 // ===============================================
 function renderHistogram() {
     const svg = document.getElementById('histogram-plot');
@@ -1030,23 +1083,23 @@ function renderHistogram() {
     const [domMin, domMax] = d.domain(state.params);
     const isDiscrete = d.type === 'discrete';
 
-    // Chart margins
     const margin = { top: 20, right: 20, bottom: 40, left: 55 };
     const W = 700 - margin.left - margin.right;
     const H = 400 - margin.top - margin.bottom;
 
-    // Create group with margin offset
     const g = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
     svg.appendChild(g);
 
-    // Read CSS colors
     const cs = getComputedStyle(document.documentElement);
     const gridColor = cs.getPropertyValue('--grid-color').trim();
     const axisColor = cs.getPropertyValue('--axis-color').trim();
     const histFill = cs.getPropertyValue('--histogram-fill').trim();
     const histStroke = cs.getPropertyValue('--histogram-stroke').trim();
     const pdfColor = cs.getPropertyValue('--pdf-line').trim();
+    const accentColor = cs.getPropertyValue('--accent').trim();
     const textSecondary = cs.getPropertyValue('--text-secondary').trim();
+    const textTertiary = cs.getPropertyValue('--text-tertiary').trim();
+    const empColor = cs.getPropertyValue('--empirical-color').trim();
 
     // Compute bins
     let bins, binWidth, maxDensity = 0;
@@ -1067,7 +1120,6 @@ function renderHistogram() {
                 if (b.density > maxDensity) maxDensity = b.density;
             });
         }
-        // Also check PMF for max
         for (let k = lo; k <= hi; k++) {
             const pmf = d.pdf(k, state.params);
             if (pmf > maxDensity) maxDensity = pmf;
@@ -1089,7 +1141,6 @@ function renderHistogram() {
                 if (b.density > maxDensity) maxDensity = b.density;
             });
         }
-        // Check PDF for max density
         const pdfSteps = 200;
         for (let i = 0; i <= pdfSteps; i++) {
             const x = domMin + (domMax - domMin) * i / pdfSteps;
@@ -1101,7 +1152,6 @@ function renderHistogram() {
     if (maxDensity === 0) maxDensity = 1;
     const yMax = maxDensity * 1.15;
 
-    // Scale helpers
     const xScale = x => ((x - domMin) / (domMax - domMin)) * W;
     const yScale = y => H - (y / yMax) * H;
 
@@ -1117,30 +1167,75 @@ function renderHistogram() {
         })).textContent = yVal.toFixed(2);
     }
 
-    // X axis ticks
-    let xTicks;
-    if (isDiscrete) {
-        const lo = Math.max(0, Math.floor(domMin));
-        const hi = Math.ceil(domMax);
-        const range = hi - lo;
-        const tickStep = range <= 20 ? 1 : range <= 50 ? 5 : 10;
-        xTicks = [];
-        for (let i = lo; i <= hi; i += tickStep) xTicks.push(i);
-    } else {
-        const numXTicks = 8;
-        xTicks = [];
-        for (let i = 0; i <= numXTicks; i++) {
-            xTicks.push(domMin + (domMax - domMin) * i / numXTicks);
-        }
+    // ===== GAUSSIAN: Sigma region shading (behind bars) =====
+    if (state.dist === 'gaussian' && state.showPDF) {
+        const mu = state.params.mu, sigma = state.params.sigma;
+        const pdfFn = x => normalPDF(x, mu, sigma);
+        const regions = [
+            { x1: mu - 3 * sigma, x2: mu + 3 * sigma, opacity: 0.06 },
+            { x1: mu - 2 * sigma, x2: mu + 2 * sigma, opacity: 0.09 },
+            { x1: mu - sigma, x2: mu + sigma, opacity: 0.13 },
+        ];
+        regions.forEach(r => {
+            g.appendChild(svgEl('path', {
+                d: makeFilledRegion(Math.max(r.x1, domMin), Math.min(r.x2, domMax), 60, pdfFn, xScale, yScale, H),
+                fill: accentColor, opacity: r.opacity
+            }));
+        });
     }
-    xTicks.forEach(xv => {
-        const xx = xScale(xv);
-        g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
-        g.appendChild(svgEl('text', {
-            x: xx, y: H + 22, 'text-anchor': 'middle',
-            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
-        })).textContent = isDiscrete ? xv.toString() : xv.toFixed(1);
-    });
+
+    // ===== EXPONENTIAL: Shaded area for P(X <= 1/lambda) =====
+    if (state.dist === 'exponential' && state.showPDF) {
+        const lam = state.params.lambda;
+        const meanX = 1 / lam;
+        const pdfFn = x => lam * Math.exp(-lam * x);
+        g.appendChild(svgEl('path', {
+            d: makeFilledRegion(0, Math.min(meanX, domMax), 50, pdfFn, xScale, yScale, H),
+            fill: accentColor, opacity: 0.1
+        }));
+    }
+
+    // X axis ticks
+    if (state.dist === 'gaussian' && state.showPDF) {
+        // Sigma labels
+        const mu = state.params.mu, sigma = state.params.sigma;
+        const sigmas = [-3, -2, -1, 0, 1, 2, 3];
+        const labels = ['\u03BC\u22123\u03C3', '\u03BC\u22122\u03C3', '\u03BC\u2212\u03C3', '\u03BC', '\u03BC+\u03C3', '\u03BC+2\u03C3', '\u03BC+3\u03C3'];
+        sigmas.forEach((s, i) => {
+            const x = mu + s * sigma;
+            if (x < domMin || x > domMax) return;
+            const xx = xScale(x);
+            g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
+            g.appendChild(svgEl('text', {
+                x: xx, y: H + 19, 'text-anchor': 'middle',
+                fill: accentColor, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '500'
+            })).textContent = labels[i];
+        });
+    } else {
+        let xTicks;
+        if (isDiscrete) {
+            const lo = Math.max(0, Math.floor(domMin));
+            const hi = Math.ceil(domMax);
+            const range = hi - lo;
+            const tickStep = range <= 20 ? 1 : range <= 50 ? 5 : 10;
+            xTicks = [];
+            for (let i = lo; i <= hi; i += tickStep) xTicks.push(i);
+        } else {
+            const numXTicks = 8;
+            xTicks = [];
+            for (let i = 0; i <= numXTicks; i++) {
+                xTicks.push(domMin + (domMax - domMin) * i / numXTicks);
+            }
+        }
+        xTicks.forEach(xv => {
+            const xx = xScale(xv);
+            g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
+            g.appendChild(svgEl('text', {
+                x: xx, y: H + 22, 'text-anchor': 'middle',
+                fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+            })).textContent = isDiscrete ? xv.toString() : xv.toFixed(1);
+        });
+    }
 
     // Axis lines
     g.appendChild(svgEl('line', { x1: 0, y1: H, x2: W, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
@@ -1161,6 +1256,23 @@ function renderHistogram() {
     });
     yLabel.textContent = isDiscrete ? 'P(X = k)' : 'Density';
     g.appendChild(yLabel);
+
+    // ===== GAUSSIAN: Vertical sigma boundary lines (behind bars) =====
+    if (state.dist === 'gaussian' && state.showPDF) {
+        const mu = state.params.mu, sigma = state.params.sigma;
+        [-3, -2, -1, 0, 1, 2, 3].forEach(s => {
+            const x = mu + s * sigma;
+            if (x < domMin || x > domMax) return;
+            const xx = xScale(x);
+            const yTop = yScale(normalPDF(x, mu, sigma));
+            g.appendChild(svgEl('line', {
+                x1: xx, y1: H, x2: xx, y2: yTop,
+                stroke: accentColor, 'stroke-width': 1,
+                'stroke-dasharray': s === 0 ? 'none' : '4,3',
+                opacity: s === 0 ? 0.5 : 0.3
+            }));
+        });
+    }
 
     // Draw histogram bars
     if (state.samples.length > 0) {
@@ -1192,7 +1304,6 @@ function renderHistogram() {
     // Draw PDF/PMF overlay
     if (state.showPDF) {
         if (isDiscrete) {
-            // Lollipop chart for PMF
             const lo = Math.max(0, Math.floor(domMin));
             const hi = Math.ceil(domMax);
             for (let k = lo; k <= hi; k++) {
@@ -1210,7 +1321,6 @@ function renderHistogram() {
                 }));
             }
         } else {
-            // Smooth PDF curve
             const steps = 200;
             let pathD = '';
             for (let i = 0; i <= steps; i++) {
@@ -1224,6 +1334,107 @@ function renderHistogram() {
                 d: pathD, fill: 'none', stroke: pdfColor, 'stroke-width': 2.5,
                 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
             }));
+        }
+    }
+
+    // ===== FOREGROUND ANNOTATIONS (on top of PDF) =====
+    if (state.showPDF) {
+        if (state.dist === 'gaussian') {
+            const mu = state.params.mu, sigma = state.params.sigma;
+            // Percentage brackets at top
+            const brackets = [
+                { s: 3, label: '99.7%', y: 3 },
+                { s: 2, label: '95%', y: 17 },
+                { s: 1, label: '68%', y: 31 },
+            ];
+            brackets.forEach(b => {
+                const bx1 = xScale(mu - b.s * sigma);
+                const bx2 = xScale(mu + b.s * sigma);
+                drawBracket(g, bx1, bx2, b.y, b.label, textTertiary, '10');
+            });
+
+            // Segment percentages below x-axis
+            const segments = [
+                { x1: mu - 3 * sigma, x2: mu - 2 * sigma, pct: '2.14%' },
+                { x1: mu - 2 * sigma, x2: mu - sigma, pct: '13.59%' },
+                { x1: mu - sigma, x2: mu, pct: '34.13%' },
+                { x1: mu, x2: mu + sigma, pct: '34.13%' },
+                { x1: mu + sigma, x2: mu + 2 * sigma, pct: '13.59%' },
+                { x1: mu + 2 * sigma, x2: mu + 3 * sigma, pct: '2.14%' },
+            ];
+            segments.forEach(seg => {
+                const cx = (xScale(seg.x1) + xScale(seg.x2)) / 2;
+                g.appendChild(svgEl('text', {
+                    x: cx, y: H + 33, 'text-anchor': 'middle',
+                    fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '8', opacity: 0.85
+                })).textContent = seg.pct;
+            });
+
+        } else if (state.dist === 'binomial') {
+            const n = state.params.n, p = state.params.p;
+            const mean = n * p;
+            const std = Math.sqrt(n * p * (1 - p));
+            // Mean line
+            drawMeanLine(g, xScale(mean), 8, H, `E[X]=${mean.toFixed(1)}`, accentColor, 8, 'right');
+            // +-1 sigma shaded region
+            const lo = Math.max(0, mean - std), hi = Math.min(n, mean + std);
+            g.appendChild(svgEl('rect', {
+                x: xScale(lo), y: 0, width: xScale(hi) - xScale(lo), height: H,
+                fill: accentColor, opacity: 0.05
+            }));
+            g.appendChild(svgEl('text', {
+                x: (xScale(lo) + xScale(hi)) / 2, y: 22, 'text-anchor': 'middle',
+                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '9'
+            })).textContent = `\u00B11\u03C3 (\u03C3=${std.toFixed(2)})`;
+
+        } else if (state.dist === 'bernoulli') {
+            const p = state.params.p;
+            // P(0) and P(1) labels above lollipops
+            const y0 = yScale(1 - p);
+            const y1 = yScale(p);
+            g.appendChild(svgEl('text', {
+                x: xScale(0), y: Math.max(y0 - 12, 10), 'text-anchor': 'middle',
+                fill: pdfColor, 'font-family': 'var(--font-mono)', 'font-size': '12', 'font-weight': '600'
+            })).textContent = `${((1 - p) * 100).toFixed(1)}%`;
+            g.appendChild(svgEl('text', {
+                x: xScale(1), y: Math.max(y1 - 12, 10), 'text-anchor': 'middle',
+                fill: pdfColor, 'font-family': 'var(--font-mono)', 'font-size': '12', 'font-weight': '600'
+            })).textContent = `${(p * 100).toFixed(1)}%`;
+            // Mean marker
+            drawMeanLine(g, xScale(p), 0, H, `E[X]=${p.toFixed(2)}`, accentColor, H + 33, 'right');
+
+        } else if (state.dist === 'uniform') {
+            const a = state.params.a, b = state.params.b;
+            const h = 1 / (b - a);
+            const mean = (a + b) / 2;
+            // Height annotation
+            const ax = xScale(a) + 8;
+            g.appendChild(svgEl('text', {
+                x: ax, y: yScale(h) - 8, 'text-anchor': 'start',
+                fill: pdfColor, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
+            })).textContent = `h = 1/(b\u2212a) = ${h.toFixed(3)}`;
+            // Mean line
+            drawMeanLine(g, xScale(mean), yScale(h) - 3, H, `E[X]=${mean.toFixed(1)}`, accentColor, yScale(h) - 8, 'right');
+            // Width annotation
+            g.appendChild(svgEl('text', {
+                x: (xScale(a) + xScale(b)) / 2, y: H + 35, 'text-anchor': 'middle',
+                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '9'
+            })).textContent = `width = b\u2212a = ${(b - a).toFixed(1)}`;
+
+        } else if (state.dist === 'exponential') {
+            const lam = state.params.lambda;
+            const mean = 1 / lam;
+            const median = Math.log(2) / lam;
+            // Mean line
+            drawMeanLine(g, xScale(mean), 8, H, `E[X]=1/\u03BB=${mean.toFixed(2)}`, accentColor, 8, 'right');
+            // Median line
+            drawMeanLine(g, xScale(median), 24, H, `med=${median.toFixed(2)}`, empColor, 24, 'right');
+            // 63.2% label in shaded area
+            const labelX = xScale(mean * 0.4);
+            g.appendChild(svgEl('text', {
+                x: labelX, y: H - 12, 'text-anchor': 'middle',
+                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
+            })).textContent = '63.2%';
         }
     }
 
@@ -1262,7 +1473,6 @@ function renderCDF() {
     const xScale = x => ((x - domMin) / (domMax - domMin)) * W;
     const yScale = y => H - y * H;
 
-    // Grid
     for (let i = 0; i <= 4; i++) {
         const yy = yScale(i / 4);
         g.appendChild(svgEl('line', { x1: 0, y1: yy, x2: W, y2: yy, stroke: gridColor, 'stroke-width': 1 }));
@@ -1272,11 +1482,9 @@ function renderCDF() {
         })).textContent = (i / 4).toFixed(2);
     }
 
-    // Axes
     g.appendChild(svgEl('line', { x1: 0, y1: H, x2: W, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
     g.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
 
-    // Theoretical CDF curve
     const steps = 200;
     let cdfPath = '';
     for (let i = 0; i <= steps; i++) {
@@ -1289,7 +1497,6 @@ function renderCDF() {
         'stroke-linecap': 'round', 'stroke-linejoin': 'round'
     }));
 
-    // Empirical CDF (step function)
     if (state.samples.length > 0) {
         const sorted = [...state.samples].sort((a, b) => a - b);
         const n = sorted.length;
@@ -1318,7 +1525,6 @@ function renderStats() {
     const d = DISTRIBUTIONS[state.dist];
     const p = state.params;
 
-    // Theoretical
     const theoGrid = document.getElementById('stats-theoretical');
     const mean = d.mean(p);
     const variance = d.variance(p);
@@ -1331,7 +1537,6 @@ function renderStats() {
         <div class="stat-item"><span class="stat-label">Skew</span> <span class="stat-value">${skew.toFixed(4)}</span></div>
     `;
 
-    // Empirical
     const empGrid = document.getElementById('stats-empirical');
     if (state.samples.length === 0) {
         empGrid.innerHTML = `
@@ -1374,7 +1579,7 @@ function renderInfoCards() {
     container.innerHTML = d.infoCards.map(c => `
         <div class="info-card">
             <h3>${c.title}</h3>
-            <p>${c.text}</p>
+            ${c.html}
         </div>
     `).join('');
 }
