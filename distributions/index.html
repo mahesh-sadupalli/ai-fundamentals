@@ -16,6 +16,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <style>
         /* ========== CSS Custom Properties ========== */
         :root {
@@ -391,16 +393,14 @@
 
         /* Equation display */
         .equation-display {
-            font-family: var(--font-mono);
-            font-size: 0.72rem;
-            color: var(--text-secondary);
             background: var(--bg-primary);
-            padding: 8px 12px;
+            padding: 12px 16px;
             border-radius: var(--radius-sm);
-            line-height: 1.6;
-            word-break: break-all;
             border: 1px solid var(--border-light);
+            text-align: center;
+            overflow-x: auto;
         }
+        .equation-display .katex { font-size: 1.05rem; color: var(--text-primary); }
 
         /* ========== CDF Chart ========== */
         .cdf-chart-container {
@@ -586,7 +586,7 @@
         <!-- Main Grid -->
         <div class="main-grid">
             <div class="plot-container" id="plot-container">
-                <svg id="histogram-plot" viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Histogram with PDF overlay"></svg>
+                <svg id="histogram-plot" viewBox="0 0 700 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Histogram with PDF overlay"></svg>
             </div>
             <div class="controls-container">
                 <h2>Controls</h2>
@@ -765,7 +765,7 @@ const DISTRIBUTIONS = {
             { key: 'sigma', label: '\u03C3 (std dev)', min: 0.1, max: 5, step: 0.1, default: 1 }
         ],
         equation(p) {
-            return `f(x) = (1/(\u03C3\u221A2\u03C0)) exp(-\u00BD((x-\u03BC)/\u03C3)\u00B2)\n\u03BC=${p.mu.toFixed(1)}, \u03C3=${p.sigma.toFixed(1)}`;
+            return `f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}}\\, \\exp\\!\\left(-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^{\\!2}\\right) \\qquad \\mu=${p.mu.toFixed(1)},\\; \\sigma=${p.sigma.toFixed(1)}`;
         },
         infoCards: [
             { title: 'What It Is', html: '<p>The <em>Gaussian</em> (normal) distribution is a symmetric, bell-shaped continuous distribution and the most important distribution in all of statistics. It is fully defined by two parameters: the mean \u03BC (center) and standard deviation \u03C3 (spread). The Central Limit Theorem guarantees that the sum of many independent random variables tends toward a Gaussian, which is why it appears everywhere in nature.</p>' },
@@ -794,7 +794,7 @@ const DISTRIBUTIONS = {
             { key: 'p', label: 'p (probability)', min: 0.01, max: 0.99, step: 0.01, default: 0.5 }
         ],
         equation(p) {
-            return `P(X=k) = C(n,k) p\u1D4F (1-p)\u207F\u207B\u1D4F\nn=${p.n}, p=${p.p.toFixed(2)}`;
+            return `P(X=k) = \\binom{n}{k}\\, p^k (1-p)^{n-k} \\qquad n=${p.n},\\; p=${p.p.toFixed(2)}`;
         },
         infoCards: [
             { title: 'What It Is', html: '<p>The <em>Binomial</em> distribution counts the number of successes in <strong>n</strong> independent trials, each with the same success probability <strong>p</strong>. Think of it as flipping a (possibly biased) coin n times and counting heads. Each individual trial follows a Bernoulli distribution, and the Binomial is their sum: X = X\u2081 + X\u2082 + \u2026 + X\u2099.</p>' },
@@ -826,7 +826,7 @@ const DISTRIBUTIONS = {
             { key: 'p', label: 'p (probability)', min: 0.01, max: 0.99, step: 0.01, default: 0.5 }
         ],
         equation(p) {
-            return `P(X=k) = p\u1D4F (1-p)\u00B9\u207B\u1D4F,  k \u2208 {0,1}\np=${p.p.toFixed(2)}`;
+            return `P(X=k) = p^k (1-p)^{1-k}, \\quad k \\in \\{0,1\\} \\qquad p=${p.p.toFixed(2)}`;
         },
         infoCards: [
             { title: 'What It Is', html: '<p>The <em>Bernoulli</em> distribution is the simplest discrete distribution &mdash; a single trial with exactly two outcomes: <strong>success</strong> (X=1) with probability p, or <strong>failure</strong> (X=0) with probability 1\u2212p. It is the fundamental building block for many other distributions: the sum of n Bernoulli trials gives a Binomial, and the count until first success gives a Geometric.</p>' },
@@ -858,7 +858,7 @@ const DISTRIBUTIONS = {
             { key: 'b', label: 'b (upper)', min: -9, max: 10, step: 0.5, default: 1 }
         ],
         equation(p) {
-            return `f(x) = 1/(b-a) for a \u2264 x \u2264 b\na=${p.a.toFixed(1)}, b=${p.b.toFixed(1)}`;
+            return `f(x) = \\frac{1}{b-a} \\quad \\text{for } a \\leq x \\leq b \\qquad a=${p.a.toFixed(1)},\\; b=${p.b.toFixed(1)}`;
         },
         infoCards: [
             { title: 'What It Is', html: '<p>The <em>Uniform</em> distribution assigns equal probability to every value in the interval [a, b]. Its PDF is a flat rectangle of height 1/(b\u2212a), making it the simplest continuous distribution. It represents <strong>complete ignorance</strong> &mdash; when you know the range but have no reason to favor any value over another.</p>' },
@@ -882,7 +882,7 @@ const DISTRIBUTIONS = {
             { key: 'lambda', label: '\u03BB (rate)', min: 0.1, max: 5, step: 0.1, default: 1 }
         ],
         equation(p) {
-            return `f(x) = \u03BB e\u207B\u1D8F\u02E3,  x \u2265 0\n\u03BB=${p.lambda.toFixed(1)}`;
+            return `f(x) = \\lambda\\, e^{-\\lambda x}, \\quad x \\geq 0 \\qquad \\lambda=${p.lambda.toFixed(1)}`;
         },
         infoCards: [
             { title: 'What It Is', html: '<p>The <em>Exponential</em> distribution models the <strong>waiting time</strong> between events in a Poisson process with rate \u03BB. If events occur randomly at an average rate of \u03BB per unit time, the time until the next event follows Exp(\u03BB). It is the continuous counterpart of the Geometric distribution and the only continuous distribution with the <em>memoryless property</em>.</p>' },
@@ -1045,12 +1045,12 @@ function makeFilledRegion(x1, x2, steps, pdfFn, xScale, yScale, H) {
 }
 
 function drawBracket(g, x1, x2, y, label, color, fontSize) {
-    const capH = 4;
-    g.appendChild(svgEl('line', { x1: x1, y1: y, x2: x2, y2: y, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
-    g.appendChild(svgEl('line', { x1: x1, y1: y + capH, x2: x1, y2: y - capH, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
-    g.appendChild(svgEl('line', { x1: x2, y1: y + capH, x2: x2, y2: y - capH, stroke: color, 'stroke-width': 1, opacity: 0.7 }));
+    const capH = 5;
+    g.appendChild(svgEl('line', { x1: x1, y1: y, x2: x2, y2: y, stroke: color, 'stroke-width': 1.2, opacity: 0.8 }));
+    g.appendChild(svgEl('line', { x1: x1, y1: y + capH, x2: x1, y2: y - capH, stroke: color, 'stroke-width': 1.2, opacity: 0.8 }));
+    g.appendChild(svgEl('line', { x1: x2, y1: y + capH, x2: x2, y2: y - capH, stroke: color, 'stroke-width': 1.2, opacity: 0.8 }));
     const t = svgEl('text', {
-        x: (x1 + x2) / 2, y: y - 6, 'text-anchor': 'middle',
+        x: (x1 + x2) / 2, y: y - 7, 'text-anchor': 'middle',
         fill: color, 'font-family': 'var(--font-mono)', 'font-size': fontSize || '10', 'font-weight': '600'
     });
     t.textContent = label;
@@ -1060,13 +1060,13 @@ function drawBracket(g, x1, x2, y, label, color, fontSize) {
 function drawMeanLine(g, xPos, yTop, yBot, label, color, labelY, anchorSide) {
     g.appendChild(svgEl('line', {
         x1: xPos, y1: yTop, x2: xPos, y2: yBot,
-        stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '6,4', opacity: 0.6
+        stroke: color, 'stroke-width': 1.5, 'stroke-dasharray': '6,4', opacity: 0.75
     }));
     const dx = anchorSide === 'left' ? -6 : 6;
     const anchor = anchorSide === 'left' ? 'end' : 'start';
     const t = svgEl('text', {
         x: xPos + dx, y: labelY, 'text-anchor': anchor,
-        fill: color, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
+        fill: color, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '600'
     });
     t.textContent = label;
     g.appendChild(t);
@@ -1083,9 +1083,9 @@ function renderHistogram() {
     const [domMin, domMax] = d.domain(state.params);
     const isDiscrete = d.type === 'discrete';
 
-    const margin = { top: 20, right: 20, bottom: 40, left: 55 };
+    const margin = { top: 20, right: 20, bottom: 70, left: 55 };
     const W = 700 - margin.left - margin.right;
-    const H = 400 - margin.top - margin.bottom;
+    const H = 450 - margin.top - margin.bottom;
 
     const g = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
     svg.appendChild(g);
@@ -1097,8 +1097,8 @@ function renderHistogram() {
     const histStroke = cs.getPropertyValue('--histogram-stroke').trim();
     const pdfColor = cs.getPropertyValue('--pdf-line').trim();
     const accentColor = cs.getPropertyValue('--accent').trim();
+    const textPrimary = cs.getPropertyValue('--text-primary').trim();
     const textSecondary = cs.getPropertyValue('--text-secondary').trim();
-    const textTertiary = cs.getPropertyValue('--text-tertiary').trim();
     const empColor = cs.getPropertyValue('--empirical-color').trim();
 
     // Compute bins
@@ -1163,7 +1163,7 @@ function renderHistogram() {
         g.appendChild(svgEl('line', { x1: 0, y1: yy, x2: W, y2: yy, stroke: gridColor, 'stroke-width': 1 }));
         g.appendChild(svgEl('text', {
             x: -8, y: yy + 4, 'text-anchor': 'end',
-            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+            fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '10'
         })).textContent = yVal.toFixed(2);
     }
 
@@ -1207,8 +1207,8 @@ function renderHistogram() {
             const xx = xScale(x);
             g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
             g.appendChild(svgEl('text', {
-                x: xx, y: H + 19, 'text-anchor': 'middle',
-                fill: accentColor, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '500'
+                x: xx, y: H + 24, 'text-anchor': 'middle',
+                fill: accentColor, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '600'
             })).textContent = labels[i];
         });
     } else {
@@ -1232,7 +1232,7 @@ function renderHistogram() {
             g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
             g.appendChild(svgEl('text', {
                 x: xx, y: H + 22, 'text-anchor': 'middle',
-                fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+                fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '10'
             })).textContent = isDiscrete ? xv.toString() : xv.toFixed(1);
         });
     }
@@ -1243,7 +1243,7 @@ function renderHistogram() {
 
     // Axis labels
     const xLabel = svgEl('text', {
-        x: W / 2, y: H + 36, 'text-anchor': 'middle',
+        x: W / 2, y: H + 55, 'text-anchor': 'middle',
         fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '11'
     });
     xLabel.textContent = 'x';
@@ -1350,7 +1350,7 @@ function renderHistogram() {
             brackets.forEach(b => {
                 const bx1 = xScale(mu - b.s * sigma);
                 const bx2 = xScale(mu + b.s * sigma);
-                drawBracket(g, bx1, bx2, b.y, b.label, textTertiary, '10');
+                drawBracket(g, bx1, bx2, b.y, b.label, textPrimary, '10');
             });
 
             // Segment percentages below x-axis
@@ -1365,8 +1365,8 @@ function renderHistogram() {
             segments.forEach(seg => {
                 const cx = (xScale(seg.x1) + xScale(seg.x2)) / 2;
                 g.appendChild(svgEl('text', {
-                    x: cx, y: H + 33, 'text-anchor': 'middle',
-                    fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '8', opacity: 0.85
+                    x: cx, y: H + 44, 'text-anchor': 'middle',
+                    fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '500'
                 })).textContent = seg.pct;
             });
 
@@ -1384,7 +1384,7 @@ function renderHistogram() {
             }));
             g.appendChild(svgEl('text', {
                 x: (xScale(lo) + xScale(hi)) / 2, y: 22, 'text-anchor': 'middle',
-                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '9'
+                fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '500'
             })).textContent = `\u00B11\u03C3 (\u03C3=${std.toFixed(2)})`;
 
         } else if (state.dist === 'bernoulli') {
@@ -1401,7 +1401,7 @@ function renderHistogram() {
                 fill: pdfColor, 'font-family': 'var(--font-mono)', 'font-size': '12', 'font-weight': '600'
             })).textContent = `${(p * 100).toFixed(1)}%`;
             // Mean marker
-            drawMeanLine(g, xScale(p), 0, H, `E[X]=${p.toFixed(2)}`, accentColor, H + 33, 'right');
+            drawMeanLine(g, xScale(p), 0, H, `E[X]=${p.toFixed(2)}`, accentColor, H + 44, 'right');
 
         } else if (state.dist === 'uniform') {
             const a = state.params.a, b = state.params.b;
@@ -1417,8 +1417,8 @@ function renderHistogram() {
             drawMeanLine(g, xScale(mean), yScale(h) - 3, H, `E[X]=${mean.toFixed(1)}`, accentColor, yScale(h) - 8, 'right');
             // Width annotation
             g.appendChild(svgEl('text', {
-                x: (xScale(a) + xScale(b)) / 2, y: H + 35, 'text-anchor': 'middle',
-                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '9'
+                x: (xScale(a) + xScale(b)) / 2, y: H + 44, 'text-anchor': 'middle',
+                fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '9', 'font-weight': '500'
             })).textContent = `width = b\u2212a = ${(b - a).toFixed(1)}`;
 
         } else if (state.dist === 'exponential') {
@@ -1433,7 +1433,7 @@ function renderHistogram() {
             const labelX = xScale(mean * 0.4);
             g.appendChild(svgEl('text', {
                 x: labelX, y: H - 12, 'text-anchor': 'middle',
-                fill: textTertiary, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
+                fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '10', 'font-weight': '500'
             })).textContent = '63.2%';
         }
     }
@@ -1441,7 +1441,7 @@ function renderHistogram() {
     // Sample count badge
     const badge = svgEl('text', {
         x: W - 4, y: 14, 'text-anchor': 'end',
-        fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '11', opacity: 0.8
+        fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '11', 'font-weight': '500'
     });
     badge.textContent = `n = ${state.samples.length.toLocaleString()}`;
     g.appendChild(badge);
@@ -1469,6 +1469,7 @@ function renderCDF() {
     const axisColor = cs.getPropertyValue('--axis-color').trim();
     const cdfColor = cs.getPropertyValue('--cdf-line').trim();
     const empColor = cs.getPropertyValue('--empirical-color').trim();
+    const textSecondary = cs.getPropertyValue('--text-secondary').trim();
 
     const xScale = x => ((x - domMin) / (domMax - domMin)) * W;
     const yScale = y => H - y * H;
@@ -1478,7 +1479,7 @@ function renderCDF() {
         g.appendChild(svgEl('line', { x1: 0, y1: yy, x2: W, y2: yy, stroke: gridColor, 'stroke-width': 1 }));
         g.appendChild(svgEl('text', {
             x: -8, y: yy + 4, 'text-anchor': 'end',
-            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+            fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '10'
         })).textContent = (i / 4).toFixed(2);
     }
 
@@ -1567,7 +1568,13 @@ function renderStats() {
 // ===============================================
 function renderEquation() {
     const d = DISTRIBUTIONS[state.dist];
-    document.getElementById('equation').textContent = d.equation(state.params);
+    const container = document.getElementById('equation');
+    const latex = d.equation(state.params);
+    if (typeof katex !== 'undefined') {
+        katex.render(latex, container, { displayMode: true, throwOnError: false });
+    } else {
+        container.textContent = latex;
+    }
 }
 
 // ===============================================
