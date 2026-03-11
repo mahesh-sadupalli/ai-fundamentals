@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability Distributions &mdash; AI Fundamentals</title>
+    <meta name="description" content="Interactive visualization of probability distributions. Draw random samples, watch histograms build up, and compare empirical results to theoretical PDF and CDF curves.">
+    <meta property="og:title" content="Probability Distributions — AI Fundamentals">
+    <meta property="og:description" content="Interactive visualization of probability distributions. Draw random samples, watch histograms build up, and compare empirical results to theoretical PDF and CDF curves.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mahesh-sadupalli.github.io/ai-fundamentals/distributions/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Probability Distributions — AI Fundamentals">
+    <meta name="twitter:description" content="Interactive visualization of probability distributions. Draw random samples, watch histograms build up, and compare empirical results to theoretical PDF and CDF curves.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%238B5CF6'>∿</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ========== CSS Custom Properties ========== */
+        :root {
+            --bg-primary: #FDF6F3;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #232F3E;
+            --text-secondary: #4A5568;
+            --text-tertiary: #8896A6;
+            --accent: #8B5CF6;
+            --accent-hover: #7C3AED;
+            --accent-light: rgba(139, 92, 246, 0.08);
+            --accent-glow: rgba(139, 92, 246, 0.15);
+            --accent-medium: rgba(139, 92, 246, 0.25);
+            --border: #E8DDD8;
+            --border-light: #F3EDE9;
+            --card-bg: #FFFFFF;
+            --surface: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(35, 47, 62, 0.04), 0 4px 12px rgba(35, 47, 62, 0.04);
+            --shadow-md: 0 4px 16px rgba(35, 47, 62, 0.08);
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --grid-color: #E8DDD8;
+            --axis-color: #8896A6;
+            --histogram-fill: rgba(139, 92, 246, 0.35);
+            --histogram-stroke: rgba(139, 92, 246, 0.6);
+            --pdf-line: #EC4899;
+            --cdf-line: #8B5CF6;
+            --empirical-color: #F59E0B;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1A2332;
+            --bg-secondary: #232F3E;
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --text-tertiary: #64748B;
+            --accent: #A78BFA;
+            --accent-hover: #8B5CF6;
+            --accent-light: rgba(167, 139, 250, 0.1);
+            --accent-glow: rgba(167, 139, 250, 0.2);
+            --accent-medium: rgba(167, 139, 250, 0.3);
+            --border: #334155;
+            --border-light: #2D3B4E;
+            --card-bg: #232F3E;
+            --surface: #232F3E;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --grid-color: #334155;
+            --axis-color: #64748B;
+            --histogram-fill: rgba(167, 139, 250, 0.3);
+            --histogram-stroke: rgba(167, 139, 250, 0.55);
+            --pdf-line: #F472B6;
+            --cdf-line: #A78BFA;
+            --empirical-color: #FBBF24;
+        }
+
+        /* ========== Reset & Base ========== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ========== Nav ========== */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--accent); }
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+
+        /* ========== Header ========== */
+        .page-header {
+            margin-bottom: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 0.35rem;
+        }
+        .page-header h1 span { color: var(--accent); }
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Intro Text ========== */
+        .intro-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.75;
+            max-width: 780px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ========== Distribution Tabs ========== */
+        .algo-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .algo-tab {
+            padding: 0.45rem 1rem;
+            border-radius: 100px;
+            font-size: 0.82rem;
+            font-family: var(--font-mono);
+            font-weight: 400;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .algo-tab:hover {
+            color: var(--text-secondary);
+            background: var(--accent-light);
+        }
+        .algo-tab.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* ========== Main Grid ========== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ========== Plot Container ========== */
+        .plot-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .plot-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ========== Controls Panel ========== */
+        .controls-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .controls-container h2 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .control-group label span {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.82rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+        }
+
+        /* Checkbox toggle */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-group input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 34px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.25s ease;
+            flex-shrink: 0;
+        }
+        .checkbox-group input[type="checkbox"]::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transition: transform 0.25s ease;
+        }
+        .checkbox-group input[type="checkbox"]:checked { background: var(--accent); }
+        .checkbox-group input[type="checkbox"]:checked::after { transform: translateX(14px); }
+        .checkbox-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Transport buttons */
+        .transport {
+            display: flex;
+            gap: 8px;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .transport-btn {
+            flex: 1;
+            padding: 0.5rem 0;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .transport-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn.playing {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Stats display */
+        .stats-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 0.75rem;
+        }
+        .stats-section h3 {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .stat-item {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .stat-item .stat-label { color: var(--text-tertiary); }
+        .stat-item .stat-value { color: var(--accent); font-weight: 500; }
+        .stat-item .stat-empirical { color: var(--empirical-color); font-weight: 500; }
+
+        /* Equation display */
+        .equation-display {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            line-height: 1.6;
+            word-break: break-all;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ========== CDF Chart ========== */
+        .cdf-chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .cdf-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .cdf-chart-header h3 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+        .cdf-legend {
+            display: flex;
+            gap: 12px;
+        }
+        .cdf-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-tertiary);
+        }
+        .cdf-legend-swatch {
+            width: 16px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        .cdf-chart-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ========== Info Cards ========== */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .info-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .info-card:hover::before { opacity: 1; }
+        .info-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            padding-left: 0.75rem;
+        }
+        .info-card p, .info-card ul {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: 0.75rem;
+        }
+        .info-card ul { padding-left: 1.75rem; }
+        .info-card li { margin-bottom: 0.15rem; }
+        .info-card code {
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            background: var(--bg-primary);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .info-card em { color: var(--accent); font-style: italic; }
+
+        /* ========== Footer ========== */
+        .page-footer {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+            padding: 2rem 0 0.5rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 960px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 1.25rem 1rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .info-cards { grid-template-columns: 1fr; }
+            .algo-tabs { gap: 4px; }
+            .algo-tab { font-size: 0.72rem; padding: 0.35rem 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Nav -->
+        <div class="top-nav">
+            <a href="../" class="back-link">&larr; AI Fundamentals</a>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Probability <span>Distributions</span></h1>
+            <p class="page-subtitle">Module 2 &middot; Statistics For Data Science &mdash; Sample, visualize, and compare distributions</p>
+        </div>
+
+        <!-- Intro -->
+        <p class="intro-text">
+            Probability distributions describe how likely different outcomes are. Draw random samples to build a histogram and watch it converge toward the theoretical probability density (or mass) function. Compare the empirical CDF to the theoretical curve as your sample size grows.
+        </p>
+
+        <!-- Distribution Tabs -->
+        <div class="algo-tabs" id="dist-tabs">
+            <button class="algo-tab active" data-dist="gaussian" aria-label="Gaussian distribution">Gaussian</button>
+            <button class="algo-tab" data-dist="binomial" aria-label="Binomial distribution">Binomial</button>
+            <button class="algo-tab" data-dist="bernoulli" aria-label="Bernoulli distribution">Bernoulli</button>
+            <button class="algo-tab" data-dist="uniform" aria-label="Uniform distribution">Uniform</button>
+            <button class="algo-tab" data-dist="exponential" aria-label="Exponential distribution">Exponential</button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <div class="plot-container" id="plot-container">
+                <svg id="histogram-plot" viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Histogram with PDF overlay"></svg>
+            </div>
+            <div class="controls-container">
+                <h2>Controls</h2>
+
+                <div id="param-controls"></div>
+
+                <div class="control-group">
+                    <label>Batch Size <span id="batch-v">10</span></label>
+                    <input type="range" id="batch-slider" min="1" max="100" step="1" value="10" aria-label="Batch size">
+                </div>
+
+                <div class="control-group">
+                    <label>Speed <span id="speed-v">1x</span></label>
+                    <input type="range" id="speed-slider" min="1" max="10" step="1" value="1" aria-label="Animation speed">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-pdf" checked>
+                    <label for="show-pdf">Show PDF/PMF overlay</label>
+                </div>
+
+                <div class="transport">
+                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()" aria-label="Play or pause">&#9654; Play</button>
+                    <button class="transport-btn" onclick="addSamples()" aria-label="Add one batch of samples">+ Sample</button>
+                    <button class="transport-btn" onclick="resetSamples()" aria-label="Reset all samples">&#8634; Reset</button>
+                </div>
+
+                <div class="stats-section">
+                    <h3>Theoretical</h3>
+                    <div class="stats-grid" id="stats-theoretical"></div>
+                </div>
+                <div class="stats-section">
+                    <h3>Empirical</h3>
+                    <div class="stats-grid" id="stats-empirical"></div>
+                </div>
+
+                <div id="equation" class="equation-display"></div>
+            </div>
+        </div>
+
+        <!-- CDF Chart -->
+        <div class="cdf-chart-container">
+            <div class="cdf-chart-header">
+                <h3>Cumulative Distribution Function</h3>
+                <div class="cdf-legend">
+                    <div class="cdf-legend-item">
+                        <div class="cdf-legend-swatch" style="background: var(--cdf-line);"></div>
+                        Theoretical
+                    </div>
+                    <div class="cdf-legend-item">
+                        <div class="cdf-legend-swatch" style="background: var(--empirical-color);"></div>
+                        Empirical
+                    </div>
+                </div>
+            </div>
+            <svg id="cdf-chart" viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CDF chart"></svg>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards" id="info-cards"></div>
+
+        <div class="page-footer">Module 2 &middot; Probability Distributions &mdash; AI Fundamentals</div>
+    </div>
+
+<script>
+// ===============================================
+// THEME
+// ===============================================
+function getTheme() {
+    const s = localStorage.getItem('ai-fund-theme');
+    if (s) return s;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const sun = document.querySelector('.icon-sun');
+    const moon = document.querySelector('.icon-moon');
+    if (sun && moon) {
+        sun.style.display = t === 'dark' ? 'none' : 'block';
+        moon.style.display = t === 'dark' ? 'block' : 'none';
+    }
+}
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ai-fund-theme', next);
+    applyTheme(next);
+    renderAll();
+}
+applyTheme(getTheme());
+
+// ===============================================
+// SVG HELPERS
+// ===============================================
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+}
+
+// ===============================================
+// MATH HELPERS
+// ===============================================
+function erf(x) {
+    // Abramowitz & Stegun approximation (max error 1.5e-7)
+    const sign = x >= 0 ? 1 : -1;
+    x = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * x);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return sign * y;
+}
+
+function normalCDF(x, mu, sigma) {
+    return 0.5 * (1 + erf((x - mu) / (sigma * Math.SQRT2)));
+}
+
+function normalPDF(x, mu, sigma) {
+    const z = (x - mu) / sigma;
+    return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+}
+
+const logFactorialCache = [];
+function logFactorial(n) {
+    if (n <= 1) return 0;
+    if (logFactorialCache[n] !== undefined) return logFactorialCache[n];
+    if (n <= 20) {
+        let val = 0;
+        for (let i = 2; i <= n; i++) val += Math.log(i);
+        logFactorialCache[n] = val;
+        return val;
+    }
+    // Stirling's approximation
+    const v = n * Math.log(n) - n + 0.5 * Math.log(2 * Math.PI * n) + 1 / (12 * n);
+    logFactorialCache[n] = v;
+    return v;
+}
+
+function binomialPMF(k, n, p) {
+    if (k < 0 || k > n) return 0;
+    if (p === 0) return k === 0 ? 1 : 0;
+    if (p === 1) return k === n ? 1 : 0;
+    const logP = logFactorial(n) - logFactorial(k) - logFactorial(n - k) + k * Math.log(p) + (n - k) * Math.log(1 - p);
+    return Math.exp(logP);
+}
+
+function binomialCDF(k, n, p) {
+    let sum = 0;
+    for (let i = 0; i <= Math.floor(k); i++) sum += binomialPMF(i, n, p);
+    return Math.min(sum, 1);
+}
+
+// Box-Muller transform
+function gaussianRandom(mu, sigma) {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return mu + sigma * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+// ===============================================
+// DISTRIBUTION REGISTRY
+// ===============================================
+const DISTRIBUTIONS = {
+    gaussian: {
+        name: 'Gaussian (Normal)',
+        type: 'continuous',
+        params: { mu: 0, sigma: 1 },
+        sample(p) { return gaussianRandom(p.mu, p.sigma); },
+        pdf(x, p) { return normalPDF(x, p.mu, p.sigma); },
+        cdf(x, p) { return normalCDF(x, p.mu, p.sigma); },
+        mean(p) { return p.mu; },
+        variance(p) { return p.sigma * p.sigma; },
+        skewness() { return 0; },
+        kurtosis() { return 3; },
+        domain(p) { return [p.mu - 4 * p.sigma, p.mu + 4 * p.sigma]; },
+        controls: [
+            { key: 'mu', label: '\u03BC (mean)', min: -5, max: 5, step: 0.1, default: 0 },
+            { key: 'sigma', label: '\u03C3 (std dev)', min: 0.1, max: 5, step: 0.1, default: 1 }
+        ],
+        equation(p) {
+            return `f(x) = (1/(\u03C3\u221A2\u03C0)) exp(-\u00BD((x-\u03BC)/\u03C3)\u00B2)\n\u03BC=${p.mu.toFixed(1)}, \u03C3=${p.sigma.toFixed(1)}`;
+        },
+        infoCards: [
+            { title: 'Bell Curve', text: 'The Gaussian distribution is symmetric around its mean \u03BC. About 68% of values fall within 1\u03C3, 95% within 2\u03C3, and 99.7% within 3\u03C3 of the mean \u2014 the famous <em>68-95-99.7 rule</em>.' },
+            { title: 'Central Limit Theorem', text: 'The sum of many independent random variables tends toward a Gaussian, regardless of their individual distributions. This is why the bell curve appears so frequently in nature and measurement.' },
+            { title: 'In Machine Learning', text: 'Weight initialization, noise injection, Bayesian priors, and variational autoencoders all rely on Gaussian distributions. The <em>reparameterization trick</em> <code>z = \u03BC + \u03C3\u03B5</code> enables gradient-based learning.' }
+        ]
+    },
+    binomial: {
+        name: 'Binomial',
+        type: 'discrete',
+        params: { n: 10, p: 0.5 },
+        sample(p) {
+            let s = 0;
+            for (let i = 0; i < p.n; i++) if (Math.random() < p.p) s++;
+            return s;
+        },
+        pdf(x, p) { return binomialPMF(Math.round(x), p.n, p.p); },
+        cdf(x, p) { return binomialCDF(x, p.n, p.p); },
+        mean(p) { return p.n * p.p; },
+        variance(p) { return p.n * p.p * (1 - p.p); },
+        skewness(p) { return (1 - 2 * p.p) / Math.sqrt(p.n * p.p * (1 - p.p)); },
+        kurtosis(p) { return 3 + (1 - 6 * p.p * (1 - p.p)) / (p.n * p.p * (1 - p.p)); },
+        domain(p) { return [-0.5, p.n + 0.5]; },
+        controls: [
+            { key: 'n', label: 'n (trials)', min: 1, max: 100, step: 1, default: 10 },
+            { key: 'p', label: 'p (probability)', min: 0.01, max: 0.99, step: 0.01, default: 0.5 }
+        ],
+        equation(p) {
+            return `P(X=k) = C(n,k) p\u1D4F (1-p)\u207F\u207B\u1D4F\nn=${p.n}, p=${p.p.toFixed(2)}`;
+        },
+        infoCards: [
+            { title: 'Sum of Trials', text: 'The Binomial distribution counts successes in <em>n</em> independent Bernoulli trials, each with success probability <em>p</em>. For example, flipping a coin 10 times and counting heads.' },
+            { title: 'Shape & Symmetry', text: 'When p=0.5 the distribution is symmetric. As p deviates from 0.5, it becomes skewed. For large n, the Binomial approximates a Gaussian with \u03BC=np and \u03C3\u00B2=np(1-p).' },
+            { title: 'In Machine Learning', text: 'Binary classification likelihood, dropout regularization (each neuron is a Bernoulli trial), and <em>Binomial deviance</em> loss all connect to this distribution.' }
+        ]
+    },
+    bernoulli: {
+        name: 'Bernoulli',
+        type: 'discrete',
+        params: { p: 0.5 },
+        sample(p) { return Math.random() < p.p ? 1 : 0; },
+        pdf(x, p) {
+            if (Math.abs(x) < 0.01) return 1 - p.p;
+            if (Math.abs(x - 1) < 0.01) return p.p;
+            return 0;
+        },
+        cdf(x, p) {
+            if (x < 0) return 0;
+            if (x < 1) return 1 - p.p;
+            return 1;
+        },
+        mean(p) { return p.p; },
+        variance(p) { return p.p * (1 - p.p); },
+        skewness(p) { return (1 - 2 * p.p) / Math.sqrt(p.p * (1 - p.p)); },
+        kurtosis(p) { return 3 + (1 - 6 * p.p * (1 - p.p)) / (p.p * (1 - p.p)); },
+        domain() { return [-0.5, 1.5]; },
+        controls: [
+            { key: 'p', label: 'p (probability)', min: 0.01, max: 0.99, step: 0.01, default: 0.5 }
+        ],
+        equation(p) {
+            return `P(X=k) = p\u1D4F (1-p)\u00B9\u207B\u1D4F,  k \u2208 {0,1}\np=${p.p.toFixed(2)}`;
+        },
+        infoCards: [
+            { title: 'Single Trial', text: 'The simplest discrete distribution: outcome is either 0 (failure) or 1 (success) with probability <em>p</em>. It is a special case of the Binomial with n=1.' },
+            { title: 'Building Block', text: 'Many complex distributions build on Bernoulli trials. The sum of n independent Bernoulli trials gives a Binomial. The number of trials until first success gives a Geometric distribution.' },
+            { title: 'In Machine Learning', text: 'Binary classification outputs follow a Bernoulli distribution. The <em>binary cross-entropy</em> loss is derived from the Bernoulli log-likelihood: <code>-[y log p + (1-y) log(1-p)]</code>.' }
+        ]
+    },
+    uniform: {
+        name: 'Uniform',
+        type: 'continuous',
+        params: { a: 0, b: 1 },
+        sample(p) { return p.a + Math.random() * (p.b - p.a); },
+        pdf(x, p) { return (x >= p.a && x <= p.b) ? 1 / (p.b - p.a) : 0; },
+        cdf(x, p) {
+            if (x < p.a) return 0;
+            if (x > p.b) return 1;
+            return (x - p.a) / (p.b - p.a);
+        },
+        mean(p) { return (p.a + p.b) / 2; },
+        variance(p) { return (p.b - p.a) * (p.b - p.a) / 12; },
+        skewness() { return 0; },
+        kurtosis() { return 1.8; },
+        domain(p) {
+            const margin = (p.b - p.a) * 0.3;
+            return [p.a - margin, p.b + margin];
+        },
+        controls: [
+            { key: 'a', label: 'a (lower)', min: -10, max: 9, step: 0.5, default: 0 },
+            { key: 'b', label: 'b (upper)', min: -9, max: 10, step: 0.5, default: 1 }
+        ],
+        equation(p) {
+            return `f(x) = 1/(b-a) for a \u2264 x \u2264 b\na=${p.a.toFixed(1)}, b=${p.b.toFixed(1)}`;
+        },
+        infoCards: [
+            { title: 'Equal Probability', text: 'Every value in the interval [a, b] is equally likely. The PDF is a flat rectangle with height 1/(b\u2212a), ensuring the total area under the curve is 1.' },
+            { title: 'Maximum Entropy', text: 'Among all continuous distributions on a bounded interval, the Uniform has the <em>highest entropy</em>. It represents complete ignorance about which value will occur within the range.' },
+            { title: 'In Machine Learning', text: 'Random number generation, <em>Xavier/He initialization</em> variants, uniform priors in Bayesian inference, and random search hyperparameter tuning all use uniform distributions.' }
+        ]
+    },
+    exponential: {
+        name: 'Exponential',
+        type: 'continuous',
+        params: { lambda: 1 },
+        sample(p) { return -Math.log(1 - Math.random()) / p.lambda; },
+        pdf(x, p) { return x >= 0 ? p.lambda * Math.exp(-p.lambda * x) : 0; },
+        cdf(x, p) { return x >= 0 ? 1 - Math.exp(-p.lambda * x) : 0; },
+        mean(p) { return 1 / p.lambda; },
+        variance(p) { return 1 / (p.lambda * p.lambda); },
+        skewness() { return 2; },
+        kurtosis() { return 9; },
+        domain(p) { return [0, 5 / p.lambda]; },
+        controls: [
+            { key: 'lambda', label: '\u03BB (rate)', min: 0.1, max: 5, step: 0.1, default: 1 }
+        ],
+        equation(p) {
+            return `f(x) = \u03BB e\u207B\u1D8F\u02E3,  x \u2265 0\n\u03BB=${p.lambda.toFixed(1)}`;
+        },
+        infoCards: [
+            { title: 'Waiting Times', text: 'The Exponential distribution models time between events in a Poisson process. With rate \u03BB, the expected waiting time is 1/\u03BB. It is the continuous analog of the Geometric distribution.' },
+            { title: 'Memoryless Property', text: 'The only continuous distribution with the <em>memoryless property</em>: P(X > s+t | X > s) = P(X > t). Past waiting time gives no information about remaining time.' },
+            { title: 'In Machine Learning', text: 'Models inter-arrival times in streaming data, lifetime/survival analysis, and serves as a prior for rate parameters. The <em>Exponential family</em> of distributions forms the backbone of generalized linear models.' }
+        ]
+    }
+};
+
+// ===============================================
+// STATE
+// ===============================================
+const MAX_SAMPLES = 10000;
+let state = {
+    dist: 'gaussian',
+    samples: [],
+    playing: false,
+    speed: 1,
+    batchSize: 10,
+    showPDF: true,
+    params: {}
+};
+let animFrame = null;
+
+function initParams() {
+    const d = DISTRIBUTIONS[state.dist];
+    state.params = {};
+    d.controls.forEach(c => { state.params[c.key] = c.default; });
+}
+initParams();
+
+// ===============================================
+// UI BINDING
+// ===============================================
+const batchSlider = document.getElementById('batch-slider');
+const speedSlider = document.getElementById('speed-slider');
+const showPDFCheckbox = document.getElementById('show-pdf');
+const playBtn = document.getElementById('play-btn');
+
+batchSlider.addEventListener('input', () => {
+    state.batchSize = parseInt(batchSlider.value);
+    document.getElementById('batch-v').textContent = state.batchSize;
+});
+
+speedSlider.addEventListener('input', () => {
+    state.speed = parseInt(speedSlider.value);
+    document.getElementById('speed-v').textContent = state.speed + 'x';
+});
+
+showPDFCheckbox.addEventListener('change', () => {
+    state.showPDF = showPDFCheckbox.checked;
+    renderAll();
+});
+
+// Distribution tabs
+document.querySelectorAll('#dist-tabs .algo-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelector('#dist-tabs .algo-tab.active').classList.remove('active');
+        tab.classList.add('active');
+        state.dist = tab.dataset.dist;
+        initParams();
+        state.samples = [];
+        if (state.playing) togglePlay();
+        buildParamControls();
+        renderAll();
+        renderInfoCards();
+    });
+});
+
+// ===============================================
+// DYNAMIC PARAMETER CONTROLS
+// ===============================================
+function buildParamControls() {
+    const container = document.getElementById('param-controls');
+    container.innerHTML = '';
+    const d = DISTRIBUTIONS[state.dist];
+    d.controls.forEach(c => {
+        const group = document.createElement('div');
+        group.className = 'control-group';
+        const val = state.params[c.key];
+        group.innerHTML = `
+            <label>${c.label} <span id="param-${c.key}-v">${formatParam(val, c.step)}</span></label>
+            <input type="range" id="param-${c.key}" min="${c.min}" max="${c.max}" step="${c.step}" value="${val}" aria-label="${c.label}">
+        `;
+        container.appendChild(group);
+        const slider = group.querySelector('input');
+        slider.addEventListener('input', () => {
+            let v = parseFloat(slider.value);
+            // Enforce a < b for uniform
+            if (state.dist === 'uniform') {
+                if (c.key === 'a' && v >= state.params.b) v = state.params.b - c.step;
+                if (c.key === 'b' && v <= state.params.a) v = state.params.a + c.step;
+                slider.value = v;
+            }
+            state.params[c.key] = v;
+            document.getElementById(`param-${c.key}-v`).textContent = formatParam(v, c.step);
+            state.samples = [];
+            renderAll();
+        });
+    });
+}
+
+function formatParam(val, step) {
+    if (step >= 1) return Math.round(val).toString();
+    if (step >= 0.1) return val.toFixed(1);
+    return val.toFixed(2);
+}
+
+// ===============================================
+// SAMPLING
+// ===============================================
+function addSamples() {
+    const d = DISTRIBUTIONS[state.dist];
+    const n = Math.min(state.batchSize, MAX_SAMPLES - state.samples.length);
+    for (let i = 0; i < n; i++) {
+        state.samples.push(d.sample(state.params));
+    }
+    renderAll();
+}
+
+function resetSamples() {
+    state.samples = [];
+    if (state.playing) togglePlay();
+    renderAll();
+}
+
+function togglePlay() {
+    state.playing = !state.playing;
+    playBtn.classList.toggle('playing', state.playing);
+    playBtn.innerHTML = state.playing ? '&#9646;&#9646; Pause' : '&#9654; Play';
+    if (state.playing) tick();
+    else if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+}
+
+let lastTick = 0;
+function tick() {
+    if (!state.playing) return;
+    const now = performance.now();
+    const interval = 1000 / (state.speed * 2);
+    if (now - lastTick >= interval) {
+        if (state.samples.length >= MAX_SAMPLES) {
+            togglePlay();
+            return;
+        }
+        addSamples();
+        lastTick = now;
+    }
+    animFrame = requestAnimationFrame(tick);
+}
+
+// ===============================================
+// RENDERING — HISTOGRAM
+// ===============================================
+function renderHistogram() {
+    const svg = document.getElementById('histogram-plot');
+    svg.innerHTML = '';
+
+    const d = DISTRIBUTIONS[state.dist];
+    const [domMin, domMax] = d.domain(state.params);
+    const isDiscrete = d.type === 'discrete';
+
+    // Chart margins
+    const margin = { top: 20, right: 20, bottom: 40, left: 55 };
+    const W = 700 - margin.left - margin.right;
+    const H = 400 - margin.top - margin.bottom;
+
+    // Create group with margin offset
+    const g = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
+    svg.appendChild(g);
+
+    // Read CSS colors
+    const cs = getComputedStyle(document.documentElement);
+    const gridColor = cs.getPropertyValue('--grid-color').trim();
+    const axisColor = cs.getPropertyValue('--axis-color').trim();
+    const histFill = cs.getPropertyValue('--histogram-fill').trim();
+    const histStroke = cs.getPropertyValue('--histogram-stroke').trim();
+    const pdfColor = cs.getPropertyValue('--pdf-line').trim();
+    const textSecondary = cs.getPropertyValue('--text-secondary').trim();
+
+    // Compute bins
+    let bins, binWidth, maxDensity = 0;
+
+    if (isDiscrete) {
+        const lo = Math.max(0, Math.floor(domMin));
+        const hi = Math.ceil(domMax);
+        const numBins = hi - lo + 1;
+        bins = Array.from({ length: numBins }, (_, i) => ({ x: lo + i, count: 0 }));
+        binWidth = 1;
+        state.samples.forEach(s => {
+            const idx = Math.round(s) - lo;
+            if (idx >= 0 && idx < bins.length) bins[idx].count++;
+        });
+        if (state.samples.length > 0) {
+            bins.forEach(b => {
+                b.density = b.count / state.samples.length;
+                if (b.density > maxDensity) maxDensity = b.density;
+            });
+        }
+        // Also check PMF for max
+        for (let k = lo; k <= hi; k++) {
+            const pmf = d.pdf(k, state.params);
+            if (pmf > maxDensity) maxDensity = pmf;
+        }
+    } else {
+        const numBins = Math.min(60, Math.max(15, Math.ceil(Math.sqrt(state.samples.length || 30))));
+        binWidth = (domMax - domMin) / numBins;
+        bins = Array.from({ length: numBins }, (_, i) => ({
+            x: domMin + i * binWidth,
+            count: 0
+        }));
+        state.samples.forEach(s => {
+            const idx = Math.floor((s - domMin) / binWidth);
+            if (idx >= 0 && idx < bins.length) bins[idx].count++;
+        });
+        if (state.samples.length > 0) {
+            bins.forEach(b => {
+                b.density = b.count / (state.samples.length * binWidth);
+                if (b.density > maxDensity) maxDensity = b.density;
+            });
+        }
+        // Check PDF for max density
+        const pdfSteps = 200;
+        for (let i = 0; i <= pdfSteps; i++) {
+            const x = domMin + (domMax - domMin) * i / pdfSteps;
+            const y = d.pdf(x, state.params);
+            if (y > maxDensity) maxDensity = y;
+        }
+    }
+
+    if (maxDensity === 0) maxDensity = 1;
+    const yMax = maxDensity * 1.15;
+
+    // Scale helpers
+    const xScale = x => ((x - domMin) / (domMax - domMin)) * W;
+    const yScale = y => H - (y / yMax) * H;
+
+    // Grid lines
+    const numYTicks = 5;
+    for (let i = 0; i <= numYTicks; i++) {
+        const yVal = (yMax * i) / numYTicks;
+        const yy = yScale(yVal);
+        g.appendChild(svgEl('line', { x1: 0, y1: yy, x2: W, y2: yy, stroke: gridColor, 'stroke-width': 1 }));
+        g.appendChild(svgEl('text', {
+            x: -8, y: yy + 4, 'text-anchor': 'end',
+            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+        })).textContent = yVal.toFixed(2);
+    }
+
+    // X axis ticks
+    let xTicks;
+    if (isDiscrete) {
+        const lo = Math.max(0, Math.floor(domMin));
+        const hi = Math.ceil(domMax);
+        const range = hi - lo;
+        const tickStep = range <= 20 ? 1 : range <= 50 ? 5 : 10;
+        xTicks = [];
+        for (let i = lo; i <= hi; i += tickStep) xTicks.push(i);
+    } else {
+        const numXTicks = 8;
+        xTicks = [];
+        for (let i = 0; i <= numXTicks; i++) {
+            xTicks.push(domMin + (domMax - domMin) * i / numXTicks);
+        }
+    }
+    xTicks.forEach(xv => {
+        const xx = xScale(xv);
+        g.appendChild(svgEl('line', { x1: xx, y1: H, x2: xx, y2: H + 6, stroke: axisColor, 'stroke-width': 1 }));
+        g.appendChild(svgEl('text', {
+            x: xx, y: H + 22, 'text-anchor': 'middle',
+            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+        })).textContent = isDiscrete ? xv.toString() : xv.toFixed(1);
+    });
+
+    // Axis lines
+    g.appendChild(svgEl('line', { x1: 0, y1: H, x2: W, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
+    g.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
+
+    // Axis labels
+    const xLabel = svgEl('text', {
+        x: W / 2, y: H + 36, 'text-anchor': 'middle',
+        fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '11'
+    });
+    xLabel.textContent = 'x';
+    g.appendChild(xLabel);
+
+    const yLabel = svgEl('text', {
+        x: -H / 2, y: -40, 'text-anchor': 'middle',
+        fill: textSecondary, 'font-family': 'var(--font-mono)', 'font-size': '11',
+        transform: 'rotate(-90)'
+    });
+    yLabel.textContent = isDiscrete ? 'P(X = k)' : 'Density';
+    g.appendChild(yLabel);
+
+    // Draw histogram bars
+    if (state.samples.length > 0) {
+        if (isDiscrete) {
+            const barW = Math.min(W / bins.length * 0.7, 30);
+            bins.forEach(b => {
+                if (b.count === 0) return;
+                const cx = xScale(b.x);
+                const bh = H - yScale(b.density);
+                g.appendChild(svgEl('rect', {
+                    x: cx - barW / 2, y: yScale(b.density), width: barW, height: bh,
+                    fill: histFill, stroke: histStroke, 'stroke-width': 1, rx: 2
+                }));
+            });
+        } else {
+            bins.forEach(b => {
+                if (b.count === 0) return;
+                const bx = xScale(b.x);
+                const bw = xScale(b.x + binWidth) - bx;
+                const bh = H - yScale(b.density);
+                g.appendChild(svgEl('rect', {
+                    x: bx, y: yScale(b.density), width: Math.max(bw - 0.5, 0.5), height: bh,
+                    fill: histFill, stroke: histStroke, 'stroke-width': 0.5, rx: 1
+                }));
+            });
+        }
+    }
+
+    // Draw PDF/PMF overlay
+    if (state.showPDF) {
+        if (isDiscrete) {
+            // Lollipop chart for PMF
+            const lo = Math.max(0, Math.floor(domMin));
+            const hi = Math.ceil(domMax);
+            for (let k = lo; k <= hi; k++) {
+                const pmf = d.pdf(k, state.params);
+                if (pmf < 1e-10) continue;
+                const cx = xScale(k);
+                const cy = yScale(pmf);
+                g.appendChild(svgEl('line', {
+                    x1: cx, y1: H, x2: cx, y2: cy,
+                    stroke: pdfColor, 'stroke-width': 2, opacity: 0.7
+                }));
+                g.appendChild(svgEl('circle', {
+                    cx: cx, cy: cy, r: 4,
+                    fill: pdfColor, stroke: 'white', 'stroke-width': 1.5
+                }));
+            }
+        } else {
+            // Smooth PDF curve
+            const steps = 200;
+            let pathD = '';
+            for (let i = 0; i <= steps; i++) {
+                const x = domMin + (domMax - domMin) * i / steps;
+                const y = d.pdf(x, state.params);
+                const px = xScale(x);
+                const py = yScale(y);
+                pathD += (i === 0 ? 'M' : 'L') + px.toFixed(2) + ',' + py.toFixed(2);
+            }
+            g.appendChild(svgEl('path', {
+                d: pathD, fill: 'none', stroke: pdfColor, 'stroke-width': 2.5,
+                'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+            }));
+        }
+    }
+
+    // Sample count badge
+    const badge = svgEl('text', {
+        x: W - 4, y: 14, 'text-anchor': 'end',
+        fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '11', opacity: 0.8
+    });
+    badge.textContent = `n = ${state.samples.length.toLocaleString()}`;
+    g.appendChild(badge);
+}
+
+// ===============================================
+// RENDERING — CDF
+// ===============================================
+function renderCDF() {
+    const svg = document.getElementById('cdf-chart');
+    svg.innerHTML = '';
+
+    const d = DISTRIBUTIONS[state.dist];
+    const [domMin, domMax] = d.domain(state.params);
+
+    const margin = { top: 10, right: 20, bottom: 30, left: 55 };
+    const W = 700 - margin.left - margin.right;
+    const H = 200 - margin.top - margin.bottom;
+
+    const g = svgEl('g', { transform: `translate(${margin.left},${margin.top})` });
+    svg.appendChild(g);
+
+    const cs = getComputedStyle(document.documentElement);
+    const gridColor = cs.getPropertyValue('--grid-color').trim();
+    const axisColor = cs.getPropertyValue('--axis-color').trim();
+    const cdfColor = cs.getPropertyValue('--cdf-line').trim();
+    const empColor = cs.getPropertyValue('--empirical-color').trim();
+
+    const xScale = x => ((x - domMin) / (domMax - domMin)) * W;
+    const yScale = y => H - y * H;
+
+    // Grid
+    for (let i = 0; i <= 4; i++) {
+        const yy = yScale(i / 4);
+        g.appendChild(svgEl('line', { x1: 0, y1: yy, x2: W, y2: yy, stroke: gridColor, 'stroke-width': 1 }));
+        g.appendChild(svgEl('text', {
+            x: -8, y: yy + 4, 'text-anchor': 'end',
+            fill: axisColor, 'font-family': 'var(--font-mono)', 'font-size': '10'
+        })).textContent = (i / 4).toFixed(2);
+    }
+
+    // Axes
+    g.appendChild(svgEl('line', { x1: 0, y1: H, x2: W, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
+    g.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: H, stroke: axisColor, 'stroke-width': 1.5 }));
+
+    // Theoretical CDF curve
+    const steps = 200;
+    let cdfPath = '';
+    for (let i = 0; i <= steps; i++) {
+        const x = domMin + (domMax - domMin) * i / steps;
+        const y = d.cdf(x, state.params);
+        cdfPath += (i === 0 ? 'M' : 'L') + xScale(x).toFixed(2) + ',' + yScale(y).toFixed(2);
+    }
+    g.appendChild(svgEl('path', {
+        d: cdfPath, fill: 'none', stroke: cdfColor, 'stroke-width': 2.5,
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }));
+
+    // Empirical CDF (step function)
+    if (state.samples.length > 0) {
+        const sorted = [...state.samples].sort((a, b) => a - b);
+        const n = sorted.length;
+        let empPath = `M${xScale(domMin).toFixed(2)},${yScale(0).toFixed(2)}`;
+
+        for (let i = 0; i < n; i++) {
+            const x = sorted[i];
+            const yBefore = i / n;
+            const yAfter = (i + 1) / n;
+            empPath += `L${xScale(x).toFixed(2)},${yScale(yBefore).toFixed(2)}`;
+            empPath += `L${xScale(x).toFixed(2)},${yScale(yAfter).toFixed(2)}`;
+        }
+        empPath += `L${xScale(domMax).toFixed(2)},${yScale(1).toFixed(2)}`;
+
+        g.appendChild(svgEl('path', {
+            d: empPath, fill: 'none', stroke: empColor, 'stroke-width': 1.5,
+            'stroke-linecap': 'round', opacity: 0.85
+        }));
+    }
+}
+
+// ===============================================
+// RENDERING — STATS
+// ===============================================
+function renderStats() {
+    const d = DISTRIBUTIONS[state.dist];
+    const p = state.params;
+
+    // Theoretical
+    const theoGrid = document.getElementById('stats-theoretical');
+    const mean = d.mean(p);
+    const variance = d.variance(p);
+    const std = Math.sqrt(variance);
+    const skew = d.skewness(p);
+    theoGrid.innerHTML = `
+        <div class="stat-item"><span class="stat-label">Mean</span> <span class="stat-value">${mean.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Var</span> <span class="stat-value">${variance.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Std</span> <span class="stat-value">${std.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Skew</span> <span class="stat-value">${skew.toFixed(4)}</span></div>
+    `;
+
+    // Empirical
+    const empGrid = document.getElementById('stats-empirical');
+    if (state.samples.length === 0) {
+        empGrid.innerHTML = `
+            <div class="stat-item"><span class="stat-label">Mean</span> <span class="stat-empirical">&mdash;</span></div>
+            <div class="stat-item"><span class="stat-label">Var</span> <span class="stat-empirical">&mdash;</span></div>
+            <div class="stat-item"><span class="stat-label">Std</span> <span class="stat-empirical">&mdash;</span></div>
+            <div class="stat-item"><span class="stat-label">Skew</span> <span class="stat-empirical">&mdash;</span></div>
+        `;
+        return;
+    }
+
+    const n = state.samples.length;
+    const eMean = state.samples.reduce((a, b) => a + b, 0) / n;
+    const eVar = state.samples.reduce((a, b) => a + (b - eMean) ** 2, 0) / n;
+    const eStd = Math.sqrt(eVar);
+    const eSkew = n > 2 ? state.samples.reduce((a, b) => a + ((b - eMean) / eStd) ** 3, 0) / n : 0;
+
+    empGrid.innerHTML = `
+        <div class="stat-item"><span class="stat-label">Mean</span> <span class="stat-empirical">${eMean.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Var</span> <span class="stat-empirical">${eVar.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Std</span> <span class="stat-empirical">${eStd.toFixed(4)}</span></div>
+        <div class="stat-item"><span class="stat-label">Skew</span> <span class="stat-empirical">${eSkew.toFixed(4)}</span></div>
+    `;
+}
+
+// ===============================================
+// RENDERING — EQUATION
+// ===============================================
+function renderEquation() {
+    const d = DISTRIBUTIONS[state.dist];
+    document.getElementById('equation').textContent = d.equation(state.params);
+}
+
+// ===============================================
+// RENDERING — INFO CARDS
+// ===============================================
+function renderInfoCards() {
+    const d = DISTRIBUTIONS[state.dist];
+    const container = document.getElementById('info-cards');
+    container.innerHTML = d.infoCards.map(c => `
+        <div class="info-card">
+            <h3>${c.title}</h3>
+            <p>${c.text}</p>
+        </div>
+    `).join('');
+}
+
+// ===============================================
+// RENDER ALL
+// ===============================================
+function renderAll() {
+    renderHistogram();
+    renderCDF();
+    renderStats();
+    renderEquation();
+}
+
+// ===============================================
+// INIT
+// ===============================================
+buildParamControls();
+renderAll();
+renderInfoCards();
+</script>
+</body>
+</html>
