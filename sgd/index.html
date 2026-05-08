@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stochastic Gradient Descent &mdash; AI Fundamentals</title>
+    <meta name="description" content="Interactive visualization comparing Batch GD, Mini-batch SGD, and Full Stochastic gradient descent on a 2D loss surface.">
+    <meta property="og:title" content="Stochastic Gradient Descent — AI Fundamentals">
+    <meta property="og:description" content="Interactive visualization comparing Batch GD, Mini-batch SGD, and Full Stochastic gradient descent on a 2D loss surface.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mahesh-sadupalli.github.io/ai-fundamentals/sgd/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Stochastic Gradient Descent — AI Fundamentals">
+    <meta name="twitter:description" content="Interactive visualization comparing Batch GD, Mini-batch SGD, and Full Stochastic gradient descent on a 2D loss surface.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%2306B6D4'>~</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ========== CSS Custom Properties ========== */
+        :root {
+            --bg-primary: #FDF6F3;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #232F3E;
+            --text-secondary: #4A5568;
+            --text-tertiary: #8896A6;
+            --accent: #06B6D4;
+            --accent-hover: #0891B2;
+            --accent-light: rgba(6, 182, 212, 0.08);
+            --accent-glow: rgba(6, 182, 212, 0.15);
+            --accent-medium: rgba(6, 182, 212, 0.25);
+            --border: #E8DDD8;
+            --border-light: #F3EDE9;
+            --card-bg: #FFFFFF;
+            --surface: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(35, 47, 62, 0.04), 0 4px 12px rgba(35, 47, 62, 0.04);
+            --shadow-md: 0 4px 16px rgba(35, 47, 62, 0.08);
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --contour-1: rgba(6, 182, 212, 0.06);
+            --contour-2: rgba(6, 182, 212, 0.10);
+            --contour-3: rgba(6, 182, 212, 0.15);
+            --contour-4: rgba(6, 182, 212, 0.20);
+            --contour-5: rgba(6, 182, 212, 0.28);
+            --contour-6: rgba(6, 182, 212, 0.36);
+            --contour-7: rgba(6, 182, 212, 0.45);
+            --contour-8: rgba(6, 182, 212, 0.55);
+            --contour-stroke: rgba(6, 182, 212, 0.25);
+            --grid-color: #E8DDD8;
+            --axis-color: #8896A6;
+            --color-batch: #3B82F6;
+            --color-minibatch: #F59E0B;
+            --color-stochastic: #F43F5E;
+            --plot-bg: #FAFAF9;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1A2332;
+            --bg-secondary: #232F3E;
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --text-tertiary: #64748B;
+            --accent: #22D3EE;
+            --accent-hover: #06B6D4;
+            --accent-light: rgba(34, 211, 238, 0.1);
+            --accent-glow: rgba(34, 211, 238, 0.2);
+            --accent-medium: rgba(34, 211, 238, 0.3);
+            --border: #334155;
+            --border-light: #2D3B4E;
+            --card-bg: #232F3E;
+            --surface: #232F3E;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --contour-1: rgba(34, 211, 238, 0.05);
+            --contour-2: rgba(34, 211, 238, 0.08);
+            --contour-3: rgba(34, 211, 238, 0.12);
+            --contour-4: rgba(34, 211, 238, 0.17);
+            --contour-5: rgba(34, 211, 238, 0.22);
+            --contour-6: rgba(34, 211, 238, 0.28);
+            --contour-7: rgba(34, 211, 238, 0.35);
+            --contour-8: rgba(34, 211, 238, 0.42);
+            --contour-stroke: rgba(34, 211, 238, 0.2);
+            --grid-color: #334155;
+            --axis-color: #64748B;
+            --color-batch: #60A5FA;
+            --color-minibatch: #FBBF24;
+            --color-stochastic: #FB7185;
+            --plot-bg: #1E293B;
+        }
+
+        /* ========== Reset & Base ========== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+
+        /* ========== Nav ========== */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .back-link:hover { color: var(--accent); }
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+
+        /* ========== Header ========== */
+        .page-header {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .page-header h1 {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 0.35rem;
+        }
+        .page-header h1 span { color: var(--accent); }
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* ========== Main Grid ========== */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ========== Contour Plot ========== */
+        .plot-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        .plot-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: crosshair;
+        }
+        .plot-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-tertiary);
+            background: var(--surface);
+            padding: 3px 10px;
+            border-radius: 100px;
+            border: 1px solid var(--border-light);
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        .plot-hint.hidden { opacity: 0; }
+
+        /* ========== Controls Panel ========== */
+        .controls-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .controls-container h2 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .control-group label span {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.82rem;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2.5px solid var(--accent);
+            cursor: pointer;
+        }
+
+        /* Batch size selector */
+        .batch-selector {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .batch-btn {
+            padding: 0.3rem 0.6rem;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            font-weight: 400;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            background: transparent;
+            color: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        .batch-btn:hover {
+            color: var(--text-secondary);
+            background: var(--accent-light);
+        }
+        .batch-btn.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Transport buttons */
+        .transport {
+            display: flex;
+            gap: 8px;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .transport-btn {
+            flex: 1;
+            padding: 0.5rem 0;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .transport-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .transport-btn.play-btn.playing {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Stats display */
+        .stats-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 0.75rem;
+        }
+        .stats-section h3 {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+        }
+        .stat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .stat-name {
+            color: var(--text-secondary);
+            min-width: 72px;
+        }
+        .stat-value {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .stat-item {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .stat-item .stat-label { color: var(--text-tertiary); }
+        .stat-item .stat-value { color: var(--accent); font-weight: 500; }
+        .iter-display {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+        .iter-display span { color: var(--accent); font-weight: 500; }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-light);
+        }
+        .legend h3 {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            margin-bottom: 2px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+        .legend-line {
+            width: 18px;
+            height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ========== Loss Chart ========== */
+        .loss-chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .loss-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .loss-chart-header h3 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+        .loss-chart-header .loss-legend {
+            display: flex;
+            gap: 12px;
+        }
+        .loss-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+        .loss-legend-dot {
+            width: 8px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        .loss-chart-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ========== Info Cards ========== */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 0 2px 2px 0;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        .info-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .info-card:hover::before { opacity: 1; }
+        .info-card h3 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            padding-left: 0.75rem;
+        }
+        .info-card p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            padding-left: 0.75rem;
+        }
+        .info-card code {
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            background: var(--bg-primary);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .info-card em { color: var(--accent); font-style: italic; }
+
+        /* ========== Footer ========== */
+        .page-footer {
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+            padding: 2rem 0 0.5rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 960px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .info-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .container { padding: 1.25rem 1rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .info-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Nav -->
+        <div class="top-nav">
+            <a href="../" class="back-link">&larr; AI Fundamentals</a>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Stochastic Gradient <span>Descent</span></h1>
+            <p class="page-subtitle">Module 5 &middot; Training &amp; Optimization &mdash; Understanding noise in optimization</p>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <div class="plot-container">
+                <svg id="contour-plot" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2D contour plot comparing three gradient descent variants"></svg>
+                <div class="plot-hint" id="plot-hint">Click to set starting position</div>
+            </div>
+            <div class="controls-container" id="controls">
+                <h2>Controls</h2>
+                <div class="control-group">
+                    <label>Learning Rate <span id="lr-v">0.0500</span></label>
+                    <input type="range" id="lr-slider" min="0.001" max="0.2" step="0.001" value="0.05" aria-label="Learning rate">
+                </div>
+                <div class="control-group">
+                    <label>Noise Scale <span id="noise-v">1.00</span></label>
+                    <input type="range" id="noise-slider" min="0.1" max="5.0" step="0.1" value="1.0" aria-label="Noise scale">
+                </div>
+                <div class="control-group">
+                    <label>Mini-batch Size</label>
+                    <div class="batch-selector" id="batch-selector">
+                        <button class="batch-btn" data-bs="1">1</button>
+                        <button class="batch-btn" data-bs="8">8</button>
+                        <button class="batch-btn active" data-bs="32">32</button>
+                        <button class="batch-btn" data-bs="64">64</button>
+                        <button class="batch-btn" data-bs="128">128</button>
+                        <button class="batch-btn" data-bs="full">Full</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Speed <span id="speed-v">1x</span></label>
+                    <input type="range" id="speed-slider" min="1" max="5" step="1" value="1" aria-label="Animation speed">
+                </div>
+                <div class="transport">
+                    <button class="transport-btn play-btn" id="play-btn" onclick="togglePlay()" aria-label="Play or pause animation">&#9654; Play</button>
+                    <button class="transport-btn" onclick="stepOnce()" aria-label="Advance one step">&#9193; Step</button>
+                    <button class="transport-btn" onclick="resetAll()" aria-label="Reset all optimizers">&#8634; Reset</button>
+                </div>
+                <div class="stats-section">
+                    <h3>Live Stats</h3>
+                    <div class="iter-display">Iteration: <span id="iter-v">0</span></div>
+                    <div class="stats-grid" id="stats"></div>
+                </div>
+                <div class="legend">
+                    <h3>Legend</h3>
+                    <div class="legend-item"><div class="legend-line" style="background:var(--color-batch)"></div> Batch GD</div>
+                    <div class="legend-item"><div class="legend-line" style="background:var(--color-minibatch)"></div> Mini-batch SGD</div>
+                    <div class="legend-item"><div class="legend-line" style="background:var(--color-stochastic)"></div> Full Stochastic</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loss Chart -->
+        <div class="loss-chart-container">
+            <div class="loss-chart-header">
+                <h3>Loss vs Iteration</h3>
+                <div class="loss-legend">
+                    <div class="loss-legend-item"><div class="loss-legend-dot" style="background:var(--color-batch)"></div> Batch</div>
+                    <div class="loss-legend-item"><div class="loss-legend-dot" style="background:var(--color-minibatch)"></div> Mini-batch</div>
+                    <div class="loss-legend-item"><div class="loss-legend-dot" style="background:var(--color-stochastic)"></div> Stochastic</div>
+                </div>
+            </div>
+            <svg id="loss-chart" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards">
+            <div class="info-card">
+                <h3>What is SGD?</h3>
+                <p>In <em>batch gradient descent</em>, we compute the exact gradient over all training data. <em>Stochastic gradient descent</em> uses a random subset (mini-batch), producing a noisy but unbiased gradient estimate. Update: <code>w -= lr * (grad + noise)</code>.</p>
+            </div>
+            <div class="info-card">
+                <h3>Why Noise Helps</h3>
+                <p>SGD's noise helps escape <em>sharp local minima</em> and saddle points that trap batch GD. The stochasticity acts as implicit regularization, guiding the optimizer toward <em>flat minima</em> that generalize better to unseen data.</p>
+            </div>
+            <div class="info-card">
+                <h3>Mini-batch Trade-off</h3>
+                <p>Larger batches give more accurate gradients but cost more compute. Noise scales as <code>1/&radic;batch_size</code>. Batch size 32&ndash;256 is a sweet spot: enough noise to regularize, enough signal to converge efficiently.</p>
+            </div>
+            <div class="info-card">
+                <h3>Learning Rate &amp; Noise</h3>
+                <p>Higher learning rates <em>amplify</em> gradient noise, causing wilder oscillations. In practice, use <em>learning rate warmup</em> and <em>decay schedules</em> to balance fast early progress with stable convergence. <code>lr &propto; &radic;batch_size</code> is a common scaling rule.</p>
+            </div>
+        </div>
+
+        <div class="page-footer">Module 5 &middot; SGD &mdash; AI Fundamentals</div>
+    </div>
+
+<script>
+// ===============================================
+// THEME
+// ===============================================
+function getTheme() {
+    const s = localStorage.getItem('ai-fund-theme');
+    if (s) return s;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    const sun = document.querySelector('.icon-sun');
+    const moon = document.querySelector('.icon-moon');
+    if (sun && moon) {
+        sun.style.display = t === 'dark' ? 'none' : 'block';
+        moon.style.display = t === 'dark' ? 'block' : 'none';
+    }
+}
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('ai-fund-theme', next);
+    applyTheme(next);
+    renderContour();
+    renderLossChart();
+}
+applyTheme(getTheme());
+
+// ===============================================
+// SVG HELPERS
+// ===============================================
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+}
+
+// ===============================================
+// LOSS FUNCTION: f(w1, w2) = w1^2 + 10*w2^2
+// ===============================================
+function loss(w1, w2) { return w1 * w1 + 10 * w2 * w2; }
+function gradient(w1, w2) { return [2 * w1, 20 * w2]; }
+
+// ===============================================
+// COORDINATE MAPPING
+// ===============================================
+const PAD = 40;
+const PW = 500, PH = 500;
+const PLOT_LEFT = PAD, PLOT_RIGHT = PW - 20;
+const PLOT_TOP = 20, PLOT_BOTTOM = PH - PAD;
+const INNER_W = PLOT_RIGHT - PLOT_LEFT;
+const INNER_H = PLOT_BOTTOM - PLOT_TOP;
+const DOMAIN = [-4, 4];
+
+function w2px(w) { return PLOT_LEFT + ((w - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_W; }
+function w2py(w) { return PLOT_BOTTOM - ((w - DOMAIN[0]) / (DOMAIN[1] - DOMAIN[0])) * INNER_H; }
+function px2w(px) { return DOMAIN[0] + ((px - PLOT_LEFT) / INNER_W) * (DOMAIN[1] - DOMAIN[0]); }
+function py2w(py) { return DOMAIN[0] + ((PLOT_BOTTOM - py) / INNER_H) * (DOMAIN[1] - DOMAIN[0]); }
+
+// ===============================================
+// STATE
+// ===============================================
+const MAX_ITERS = 500;
+
+let state = {
+    lr: 0.05,
+    noiseScale: 1.0,
+    batchSize: 32,
+    speed: 1,
+    playing: false,
+    iteration: 0,
+    startW: [3.5, 3.0],
+    // Three optimizers
+    batch: { w: [3.5, 3.0], path: [], losses: [] },
+    minibatch: { w: [3.5, 3.0], path: [], losses: [] },
+    stochastic: { w: [3.5, 3.0], path: [], losses: [] }
+};
+
+function gaussianRandom() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// ===============================================
+// OPTIMIZER STEPS
+// ===============================================
+function stepBatch(opt) {
+    const [g1, g2] = gradient(opt.w[0], opt.w[1]);
+    opt.w[0] -= state.lr * g1;
+    opt.w[1] -= state.lr * g2;
+}
+
+function stepMiniBatch(opt) {
+    const [g1, g2] = gradient(opt.w[0], opt.w[1]);
+    const bs = state.batchSize;
+    const noiseFactor = state.noiseScale / Math.sqrt(bs);
+    const n1 = gaussianRandom() * noiseFactor;
+    const n2 = gaussianRandom() * noiseFactor;
+    opt.w[0] -= state.lr * (g1 + n1);
+    opt.w[1] -= state.lr * (g2 + n2);
+}
+
+function stepStochastic(opt) {
+    const [g1, g2] = gradient(opt.w[0], opt.w[1]);
+    const n1 = gaussianRandom() * state.noiseScale;
+    const n2 = gaussianRandom() * state.noiseScale;
+    opt.w[0] -= state.lr * (g1 + n1);
+    opt.w[1] -= state.lr * (g2 + n2);
+}
+
+function doStep() {
+    if (state.iteration >= MAX_ITERS) { pause(); return; }
+
+    stepBatch(state.batch);
+    state.batch.path.push([state.batch.w[0], state.batch.w[1]]);
+    state.batch.losses.push(loss(state.batch.w[0], state.batch.w[1]));
+
+    stepMiniBatch(state.minibatch);
+    state.minibatch.path.push([state.minibatch.w[0], state.minibatch.w[1]]);
+    state.minibatch.losses.push(loss(state.minibatch.w[0], state.minibatch.w[1]));
+
+    stepStochastic(state.stochastic);
+    state.stochastic.path.push([state.stochastic.w[0], state.stochastic.w[1]]);
+    state.stochastic.losses.push(loss(state.stochastic.w[0], state.stochastic.w[1]));
+
+    state.iteration++;
+    renderContour();
+    renderLossChart();
+    updateStats();
+}
+
+function stepOnce() {
+    doStep();
+    document.getElementById('plot-hint').classList.add('hidden');
+}
+
+// ===============================================
+// ANIMATION
+// ===============================================
+let animId = null;
+let lastTime = 0;
+
+function animate(timestamp) {
+    if (!state.playing) return;
+    const interval = Math.max(16, 200 / state.speed);
+    if (timestamp - lastTime >= interval) {
+        doStep();
+        lastTime = timestamp;
+    }
+    if (state.iteration < MAX_ITERS && state.playing) {
+        animId = requestAnimationFrame(animate);
+    } else {
+        pause();
+    }
+}
+
+function play() {
+    state.playing = true;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9646;&#9646; Pause';
+    btn.classList.add('playing');
+    document.getElementById('plot-hint').classList.add('hidden');
+    lastTime = 0;
+    animId = requestAnimationFrame(animate);
+}
+
+function pause() {
+    state.playing = false;
+    const btn = document.getElementById('play-btn');
+    btn.innerHTML = '&#9654; Play';
+    btn.classList.remove('playing');
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+}
+
+function togglePlay() {
+    if (state.playing) pause(); else play();
+}
+
+function resetAll(w1, w2) {
+    pause();
+    if (w1 !== undefined && w2 !== undefined) {
+        state.startW = [w1, w2];
+    }
+    state.iteration = 0;
+
+    const inits = [state.batch, state.minibatch, state.stochastic];
+    for (const opt of inits) {
+        opt.w = [state.startW[0], state.startW[1]];
+        opt.path = [[state.startW[0], state.startW[1]]];
+        opt.losses = [loss(state.startW[0], state.startW[1])];
+    }
+
+    renderContour();
+    renderLossChart();
+    updateStats();
+    document.getElementById('plot-hint').classList.remove('hidden');
+}
+
+// ===============================================
+// CONTOUR RENDERING
+// ===============================================
+function renderContour() {
+    const svg = document.getElementById('contour-plot');
+    svg.innerHTML = '';
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Background
+    svg.appendChild(svgEl('rect', {
+        x: PLOT_LEFT, y: PLOT_TOP,
+        width: INNER_W, height: INNER_H,
+        fill: isDark ? '#1E293B' : '#FAFAF9',
+        rx: '4'
+    }));
+
+    // Contour levels
+    const levels = [120, 80, 50, 30, 18, 10, 5, 2, 0.5];
+    const fills = [
+        'var(--contour-1)', 'var(--contour-2)', 'var(--contour-3)',
+        'var(--contour-4)', 'var(--contour-5)', 'var(--contour-6)',
+        'var(--contour-7)', 'var(--contour-8)', 'var(--accent-medium)'
+    ];
+
+    // Clip
+    const defs = svgEl('defs', {});
+    const clip = svgEl('clipPath', { id: 'plot-clip' });
+    clip.appendChild(svgEl('rect', { x: PLOT_LEFT, y: PLOT_TOP, width: INNER_W, height: INNER_H }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    const contourG = svgEl('g', { 'clip-path': 'url(#plot-clip)' });
+    for (let i = 0; i < levels.length; i++) {
+        const c = levels[i];
+        const a = Math.sqrt(c);
+        const b = Math.sqrt(c / 10);
+        const cx = w2px(0), cy = w2py(0);
+        const rx = (a / (DOMAIN[1] - DOMAIN[0])) * INNER_W;
+        const ry = (b / (DOMAIN[1] - DOMAIN[0])) * INNER_H;
+        contourG.appendChild(svgEl('ellipse', {
+            cx: cx, cy: cy, rx: rx, ry: ry,
+            fill: fills[i], stroke: 'var(--contour-stroke)', 'stroke-width': '0.75'
+        }));
+    }
+    svg.appendChild(contourG);
+
+    // Grid lines
+    const gridG = svgEl('g', {});
+    for (let w = -4; w <= 4; w++) {
+        if (w === 0) continue;
+        gridG.appendChild(svgEl('line', {
+            x1: w2px(w), y1: PLOT_TOP, x2: w2px(w), y2: PLOT_BOTTOM,
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+        gridG.appendChild(svgEl('line', {
+            x1: PLOT_LEFT, y1: w2py(w), x2: PLOT_RIGHT, y2: w2py(w),
+            stroke: 'var(--grid-color)', 'stroke-dasharray': '2 4', 'stroke-width': '0.5'
+        }));
+    }
+    // Axes
+    gridG.appendChild(svgEl('line', {
+        x1: PLOT_LEFT, y1: w2py(0), x2: PLOT_RIGHT, y2: w2py(0),
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    gridG.appendChild(svgEl('line', {
+        x1: w2px(0), y1: PLOT_TOP, x2: w2px(0), y2: PLOT_BOTTOM,
+        stroke: 'var(--axis-color)', 'stroke-width': '1'
+    }));
+    svg.appendChild(gridG);
+
+    // Axis labels
+    for (let w = -4; w <= 4; w++) {
+        if (w === 0) continue;
+        const tx = svgEl('text', {
+            x: w2px(w), y: PLOT_BOTTOM + 16,
+            'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        tx.textContent = w;
+        svg.appendChild(tx);
+        const ty = svgEl('text', {
+            x: PLOT_LEFT - 8, y: w2py(w) + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+        });
+        ty.textContent = w;
+        svg.appendChild(ty);
+    }
+    // Axis names
+    const lw1 = svgEl('text', {
+        x: PLOT_RIGHT - 4, y: w2py(0) - 8,
+        'text-anchor': 'end', fill: 'var(--text-tertiary)',
+        'font-size': '11', 'font-family': 'JetBrains Mono, monospace', 'font-weight': '500'
+    });
+    lw1.textContent = 'w\u2081';
+    svg.appendChild(lw1);
+    const lw2 = svgEl('text', {
+        x: w2px(0) + 10, y: PLOT_TOP + 14,
+        'text-anchor': 'start', fill: 'var(--text-tertiary)',
+        'font-size': '11', 'font-family': 'JetBrains Mono, monospace', 'font-weight': '500'
+    });
+    lw2.textContent = 'w\u2082';
+    svg.appendChild(lw2);
+
+    // Minimum marker
+    svg.appendChild(svgEl('circle', {
+        cx: w2px(0), cy: w2py(0), r: '3',
+        fill: 'var(--accent)', opacity: '0.6'
+    }));
+
+    // Draw paths and points for all three optimizers
+    const optimizers = [
+        { opt: state.batch, color: 'var(--color-batch)', label: 'batch' },
+        { opt: state.minibatch, color: 'var(--color-minibatch)', label: 'minibatch' },
+        { opt: state.stochastic, color: 'var(--color-stochastic)', label: 'stochastic' }
+    ];
+
+    for (const { opt, color } of optimizers) {
+        // Path trail
+        if (opt.path.length > 1) {
+            let d = '';
+            for (let i = 0; i < opt.path.length; i++) {
+                const [w1, w2] = opt.path[i];
+                const px = w2px(w1), py = w2py(w2);
+                d += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ' ' + py.toFixed(1);
+            }
+            svg.appendChild(svgEl('path', {
+                d: d, fill: 'none', stroke: color,
+                'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+                opacity: '0.7'
+            }));
+        }
+
+        // Current position dot
+        if (opt.path.length > 0) {
+            const px = w2px(opt.w[0]), py = w2py(opt.w[1]);
+            // Glow
+            svg.appendChild(svgEl('circle', {
+                cx: px, cy: py, r: '10',
+                fill: color, opacity: '0.15'
+            }));
+            // Point
+            svg.appendChild(svgEl('circle', {
+                cx: px, cy: py, r: '4.5',
+                fill: color,
+                stroke: 'white', 'stroke-width': '1.5'
+            }));
+        }
+    }
+}
+
+// ===============================================
+// LOSS CHART
+// ===============================================
+function renderLossChart() {
+    const svg = document.getElementById('loss-chart');
+    svg.innerHTML = '';
+
+    const CW = 800, CH = 180;
+    const cPad = { top: 10, right: 20, bottom: 25, left: 55 };
+    const cW = CW - cPad.left - cPad.right;
+    const cH = CH - cPad.top - cPad.bottom;
+
+    const allLosses = [state.batch.losses, state.minibatch.losses, state.stochastic.losses];
+    const maxLen = Math.max(...allLosses.map(l => l.length));
+
+    if (maxLen < 2) {
+        // Empty state
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: cPad.top + cH, x2: cPad.left + cW, y2: cPad.top + cH,
+            stroke: 'var(--border)', 'stroke-width': '1'
+        }));
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
+            stroke: 'var(--border)', 'stroke-width': '1'
+        }));
+        const hint = svgEl('text', {
+            x: cPad.left + cW / 2, y: cPad.top + cH / 2,
+            'text-anchor': 'middle', 'dominant-baseline': 'middle',
+            fill: 'var(--text-tertiary)', 'font-size': '13',
+            'font-family': 'Source Sans 3, sans-serif'
+        });
+        hint.textContent = 'Run the optimizer to see loss curves';
+        svg.appendChild(hint);
+        return;
+    }
+
+    // Find max loss across all (look at first 50 to avoid outlier scaling)
+    let maxLoss = 0;
+    for (const losses of allLosses) {
+        for (let i = 0; i < Math.min(losses.length, 50); i++) {
+            if (losses[i] > maxLoss) maxLoss = losses[i];
+        }
+    }
+    maxLoss *= 1.1;
+    const minLoss = 0;
+    const xScale = cW / Math.max(1, maxLen - 1);
+    const yScale = cH / (maxLoss - minLoss || 1);
+
+    function cx(i) { return cPad.left + i * xScale; }
+    function cy(l) { return cPad.top + cH - (Math.min(l, maxLoss) - minLoss) * yScale; }
+
+    // Horizontal grid
+    const yTicks = 5;
+    for (let i = 0; i <= yTicks; i++) {
+        const val = minLoss + (maxLoss - minLoss) * (i / yTicks);
+        const yy = cy(val);
+        svg.appendChild(svgEl('line', {
+            x1: cPad.left, y1: yy, x2: cPad.left + cW, y2: yy,
+            stroke: 'var(--border-light)', 'stroke-dasharray': '2 3', 'stroke-width': '0.5'
+        }));
+        const lbl = svgEl('text', {
+            x: cPad.left - 8, y: yy + 3.5,
+            'text-anchor': 'end', fill: 'var(--text-tertiary)',
+            'font-size': '9', 'font-family': 'JetBrains Mono, monospace'
+        });
+        lbl.textContent = val < 10 ? val.toFixed(2) : val.toFixed(0);
+        svg.appendChild(lbl);
+    }
+
+    // Axes
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top + cH, x2: cPad.left + cW, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+    svg.appendChild(svgEl('line', {
+        x1: cPad.left, y1: cPad.top, x2: cPad.left, y2: cPad.top + cH,
+        stroke: 'var(--border)', 'stroke-width': '1'
+    }));
+
+    // X axis label
+    const xLbl = svgEl('text', {
+        x: cPad.left + cW / 2, y: CH - 3,
+        'text-anchor': 'middle', fill: 'var(--text-tertiary)',
+        'font-size': '10', 'font-family': 'JetBrains Mono, monospace'
+    });
+    xLbl.textContent = 'iteration';
+    svg.appendChild(xLbl);
+
+    // Draw each loss line
+    const colors = ['var(--color-batch)', 'var(--color-minibatch)', 'var(--color-stochastic)'];
+    for (let k = 0; k < allLosses.length; k++) {
+        const losses = allLosses[k];
+        if (losses.length < 2) continue;
+
+        let lineD = `M${cx(0)} ${cy(losses[0])}`;
+        for (let i = 1; i < losses.length; i++) {
+            lineD += ` L${cx(i)} ${cy(losses[i])}`;
+        }
+        svg.appendChild(svgEl('path', {
+            d: lineD, fill: 'none', stroke: colors[k],
+            'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+            opacity: '0.85'
+        }));
+
+        // End dot
+        const lastI = losses.length - 1;
+        svg.appendChild(svgEl('circle', {
+            cx: cx(lastI), cy: cy(losses[lastI]), r: '3',
+            fill: colors[k], stroke: 'white', 'stroke-width': '1'
+        }));
+    }
+}
+
+// ===============================================
+// STATS
+// ===============================================
+function updateStats() {
+    document.getElementById('iter-v').textContent = state.iteration;
+
+    const bLoss = loss(state.batch.w[0], state.batch.w[1]);
+    const mLoss = loss(state.minibatch.w[0], state.minibatch.w[1]);
+    const sLoss = loss(state.stochastic.w[0], state.stochastic.w[1]);
+
+    document.getElementById('stats').innerHTML = `
+        <div class="stat-row">
+            <div class="stat-dot" style="background:var(--color-batch)"></div>
+            <span class="stat-name">Batch</span>
+            <span class="stat-value">${bLoss.toFixed(4)}</span>
+        </div>
+        <div class="stat-row">
+            <div class="stat-dot" style="background:var(--color-minibatch)"></div>
+            <span class="stat-name">Mini-batch</span>
+            <span class="stat-value">${mLoss.toFixed(4)}</span>
+        </div>
+        <div class="stat-row">
+            <div class="stat-dot" style="background:var(--color-stochastic)"></div>
+            <span class="stat-name">Stochastic</span>
+            <span class="stat-value">${sLoss.toFixed(4)}</span>
+        </div>
+    `;
+}
+
+// ===============================================
+// EVENTS
+// ===============================================
+
+// Sliders
+document.getElementById('lr-slider').addEventListener('input', e => {
+    state.lr = parseFloat(e.target.value);
+    document.getElementById('lr-v').textContent = state.lr.toFixed(4);
+});
+
+document.getElementById('noise-slider').addEventListener('input', e => {
+    state.noiseScale = parseFloat(e.target.value);
+    document.getElementById('noise-v').textContent = state.noiseScale.toFixed(2);
+});
+
+document.getElementById('speed-slider').addEventListener('input', e => {
+    state.speed = parseInt(e.target.value);
+    document.getElementById('speed-v').textContent = state.speed + 'x';
+});
+
+// Batch size selector
+document.querySelectorAll('.batch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.batch-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const v = btn.dataset.bs;
+        state.batchSize = v === 'full' ? Infinity : parseInt(v);
+    });
+});
+
+// Click on contour plot to set start position
+document.getElementById('contour-plot').addEventListener('click', e => {
+    const svg = document.getElementById('contour-plot');
+    const rect = svg.getBoundingClientRect();
+    const scaleX = 500 / rect.width;
+    const scaleY = 500 / rect.height;
+    const svgX = (e.clientX - rect.left) * scaleX;
+    const svgY = (e.clientY - rect.top) * scaleY;
+    const w1 = px2w(svgX);
+    const w2 = py2w(svgY);
+    if (w1 >= DOMAIN[0] && w1 <= DOMAIN[1] && w2 >= DOMAIN[0] && w2 <= DOMAIN[1]) {
+        resetAll(w1, w2);
+    }
+});
+
+// ===============================================
+// INIT
+// ===============================================
+resetAll(state.startW[0], state.startW[1]);
+</script>
+</body>
+</html>
