@@ -158,6 +158,37 @@
             border-top: 1px solid var(--border-light);
         }
 
+        /* ========== Plot ========== */
+        .plot-container {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+        }
+        .plot-container svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .plot-hint {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--text-tertiary);
+            background: var(--surface);
+            padding: 3px 10px;
+            border-radius: 100px;
+            border: 1px solid var(--border-light);
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
         /* ========== Responsive ========== */
         @media (max-width: 640px) {
             .container { padding: 1.25rem 1rem; }
@@ -186,7 +217,11 @@
             <p class="page-subtitle">Module 3 &middot; Linear Models &mdash; Fit a line through data and watch the loss shrink</p>
         </div>
 
-        <!-- Main content goes here in next commits -->
+        <!-- Plot -->
+        <div class="plot-container">
+            <svg id="plot" viewBox="0 0 700 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter plot with a fitted line"></svg>
+            <div class="plot-hint">Drag the line endpoints to fit the data</div>
+        </div>
 
         <div class="page-footer">Module 3 &middot; Linear Regression &mdash; AI Fundamentals</div>
     </div>
@@ -214,8 +249,254 @@ function toggleTheme() {
     const next = cur === 'dark' ? 'light' : 'dark';
     localStorage.setItem('ai-fund-theme', next);
     applyTheme(next);
+    renderPlot();
 }
 applyTheme(getTheme());
+
+// ═══════════════════════════════════════════════
+// SVG HELPERS
+// ═══════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    return e;
+}
+function css(varName) {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
+// ═══════════════════════════════════════════════
+// PLOT COORDS
+// Domain: x in [0, 10], y in [0, 10]
+// SVG viewBox: 700 x 480
+// ═══════════════════════════════════════════════
+const PAD_L = 56, PAD_R = 24, PAD_T = 24, PAD_B = 44;
+const PW = 700, PH = 480;
+const X_DOMAIN = [0, 10];
+const Y_DOMAIN = [0, 10];
+const INNER_W = PW - PAD_L - PAD_R;
+const INNER_H = PH - PAD_T - PAD_B;
+
+function x2px(x) { return PAD_L + ((x - X_DOMAIN[0]) / (X_DOMAIN[1] - X_DOMAIN[0])) * INNER_W; }
+function y2py(y) { return PH - PAD_B - ((y - Y_DOMAIN[0]) / (Y_DOMAIN[1] - Y_DOMAIN[0])) * INNER_H; }
+function px2x(px) { return X_DOMAIN[0] + ((px - PAD_L) / INNER_W) * (X_DOMAIN[1] - X_DOMAIN[0]); }
+function py2y(py) { return Y_DOMAIN[0] + ((PH - PAD_B - py) / INNER_H) * (Y_DOMAIN[1] - Y_DOMAIN[0]); }
+
+// ═══════════════════════════════════════════════
+// DATA + LINE STATE
+// ═══════════════════════════════════════════════
+function makeLinearData(n, slope, intercept, noise) {
+    const data = [];
+    const rng = mulberry32(42);
+    for (let i = 0; i < n; i++) {
+        const x = 0.5 + (i / (n - 1)) * 9;
+        const y = slope * x + intercept + (rng() - 0.5) * 2 * noise;
+        data.push({ x, y });
+    }
+    return data;
+}
+function mulberry32(a) {
+    return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = a;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+}
+
+let state = {
+    data: makeLinearData(20, 0.7, 1.5, 1.2),
+    slope: 0.5,
+    intercept: 2.0
+};
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function renderPlot() {
+    const svg = document.getElementById('plot');
+    svg.innerHTML = '';
+
+    // Background
+    svg.appendChild(svgEl('rect', {
+        x: PAD_L, y: PAD_T, width: INNER_W, height: INNER_H,
+        fill: 'transparent'
+    }));
+
+    // Grid
+    const gridColor = css('--grid-color');
+    for (let i = 0; i <= 10; i++) {
+        const x = x2px(i);
+        svg.appendChild(svgEl('line', {
+            x1: x, y1: PAD_T, x2: x, y2: PH - PAD_B,
+            stroke: gridColor, 'stroke-width': i % 5 === 0 ? 1 : 0.5, opacity: 0.5
+        }));
+    }
+    for (let i = 0; i <= 10; i++) {
+        const y = y2py(i);
+        svg.appendChild(svgEl('line', {
+            x1: PAD_L, y1: y, x2: PW - PAD_R, y2: y,
+            stroke: gridColor, 'stroke-width': i % 5 === 0 ? 1 : 0.5, opacity: 0.5
+        }));
+    }
+
+    // Axes
+    const axisColor = css('--axis-color');
+    svg.appendChild(svgEl('line', {
+        x1: PAD_L, y1: PH - PAD_B, x2: PW - PAD_R, y2: PH - PAD_B,
+        stroke: axisColor, 'stroke-width': 1.5
+    }));
+    svg.appendChild(svgEl('line', {
+        x1: PAD_L, y1: PAD_T, x2: PAD_L, y2: PH - PAD_B,
+        stroke: axisColor, 'stroke-width': 1.5
+    }));
+
+    // Tick labels
+    const textColor = css('--text-tertiary');
+    for (let i = 0; i <= 10; i += 2) {
+        const tx = svgEl('text', {
+            x: x2px(i), y: PH - PAD_B + 18,
+            'text-anchor': 'middle',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': 11, fill: textColor
+        });
+        tx.textContent = i;
+        svg.appendChild(tx);
+    }
+    for (let i = 0; i <= 10; i += 2) {
+        const ty = svgEl('text', {
+            x: PAD_L - 10, y: y2py(i) + 4,
+            'text-anchor': 'end',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': 11, fill: textColor
+        });
+        ty.textContent = i;
+        svg.appendChild(ty);
+    }
+    // Axis labels
+    const xLabel = svgEl('text', {
+        x: PW - PAD_R, y: PH - 8,
+        'text-anchor': 'end',
+        'font-family': "'JetBrains Mono', monospace",
+        'font-size': 11, fill: textColor, 'font-weight': 500
+    });
+    xLabel.textContent = 'x';
+    svg.appendChild(xLabel);
+    const yLabel = svgEl('text', {
+        x: PAD_L - 14, y: PAD_T + 4,
+        'text-anchor': 'end',
+        'font-family': "'JetBrains Mono', monospace",
+        'font-size': 11, fill: textColor, 'font-weight': 500
+    });
+    yLabel.textContent = 'y';
+    svg.appendChild(yLabel);
+
+    // Line: y = slope * x + intercept, clipped to domain
+    const lineColor = css('--line-color');
+    const x1 = X_DOMAIN[0];
+    const x2 = X_DOMAIN[1];
+    const y1 = state.slope * x1 + state.intercept;
+    const y2 = state.slope * x2 + state.intercept;
+    svg.appendChild(svgEl('line', {
+        x1: x2px(x1), y1: y2py(y1), x2: x2px(x2), y2: y2py(y2),
+        stroke: lineColor, 'stroke-width': 2.5, 'stroke-linecap': 'round',
+        opacity: 0.85
+    }));
+
+    // Data points
+    const pointColor = css('--point-color');
+    for (const d of state.data) {
+        svg.appendChild(svgEl('circle', {
+            cx: x2px(d.x), cy: y2py(d.y), r: 4.5,
+            fill: pointColor, opacity: 0.85,
+            stroke: css('--surface'), 'stroke-width': 1.5
+        }));
+    }
+
+    // Draggable handles at line endpoints
+    const handleL = svgEl('circle', {
+        cx: x2px(x1), cy: y2py(y1), r: 8,
+        fill: css('--surface'),
+        stroke: lineColor, 'stroke-width': 2.5,
+        cursor: 'grab',
+        'data-handle': 'left'
+    });
+    const handleR = svgEl('circle', {
+        cx: x2px(x2), cy: y2py(y2), r: 8,
+        fill: css('--surface'),
+        stroke: lineColor, 'stroke-width': 2.5,
+        cursor: 'grab',
+        'data-handle': 'right'
+    });
+    svg.appendChild(handleL);
+    svg.appendChild(handleR);
+
+    attachDragHandlers(svg, handleL, handleR);
+}
+
+// ═══════════════════════════════════════════════
+// DRAG HANDLERS
+// ═══════════════════════════════════════════════
+function attachDragHandlers(svg, handleL, handleR) {
+    let dragging = null;
+
+    function onPointerDown(handle, side) {
+        return (e) => {
+            e.preventDefault();
+            dragging = side;
+            handle.setAttribute('cursor', 'grabbing');
+            svg.setPointerCapture(e.pointerId);
+        };
+    }
+    function onPointerMove(e) {
+        if (!dragging) return;
+        const pt = clientToSvg(svg, e.clientX, e.clientY);
+        const y = clamp(py2y(pt.y), -2, 12);
+        if (dragging === 'left') {
+            // anchor right endpoint, adjust slope+intercept so left endpoint = (0, y)
+            const rightX = X_DOMAIN[1];
+            const rightY = state.slope * rightX + state.intercept;
+            const newSlope = (rightY - y) / (rightX - X_DOMAIN[0]);
+            state.slope = clamp(newSlope, -5, 5);
+            state.intercept = y;
+        } else {
+            // anchor left endpoint, adjust slope so right endpoint = (10, y)
+            const leftX = X_DOMAIN[0];
+            const leftY = state.slope * leftX + state.intercept;
+            const newSlope = (y - leftY) / (X_DOMAIN[1] - leftX);
+            state.slope = clamp(newSlope, -5, 5);
+            // intercept unchanged
+        }
+        renderPlot();
+    }
+    function onPointerUp(e) {
+        if (!dragging) return;
+        dragging = null;
+        handleL.setAttribute('cursor', 'grab');
+        handleR.setAttribute('cursor', 'grab');
+        try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+
+    handleL.addEventListener('pointerdown', onPointerDown(handleL, 'left'));
+    handleR.addEventListener('pointerdown', onPointerDown(handleR, 'right'));
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+}
+
+function clientToSvg(svg, clientX, clientY) {
+    const pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderPlot();
 </script>
 </body>
 </html>
