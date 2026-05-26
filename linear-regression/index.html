@@ -371,6 +371,52 @@
         }
         .toggle-switch.on::after { transform: translateX(16px); }
 
+        /* ========== Loss surface mini-viz ========== */
+        .loss-surface {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .loss-surface-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.6rem;
+        }
+        .loss-surface-header h3 {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+        .loss-surface-header .legend {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            display: flex;
+            gap: 0.85rem;
+            align-items: center;
+        }
+        .legend-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .loss-surface svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         /* ========== Stats ========== */
         .stats-section {
             border-top: 1px solid var(--border-light);
@@ -522,6 +568,18 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Loss surface -->
+        <div class="loss-surface">
+            <div class="loss-surface-header">
+                <h3>MSE Loss Landscape</h3>
+                <span class="legend">
+                    <span><span class="legend-dot" style="background: var(--point-color);"></span>current</span>
+                    <span><span class="legend-dot" style="background: var(--line-color);"></span>optimum</span>
+                </span>
+            </div>
+            <svg id="loss-surface" viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Contour plot of MSE loss over slope and intercept"></svg>
         </div>
 
         <div class="page-footer">Module 3 &middot; Linear Regression &mdash; AI Fundamentals</div>
@@ -797,6 +855,7 @@ function renderPlot() {
     // Keep slider UI in sync with state (handles drag updates too)
     syncSlidersToState();
     updateStatsUI();
+    renderLossSurface();
 }
 
 // ═══════════════════════════════════════════════
@@ -913,6 +972,229 @@ function updateStatsUI() {
     document.getElementById('stat-opt-m').textContent = opt.m.toFixed(3);
     document.getElementById('stat-opt-b').textContent = opt.b.toFixed(3);
     document.getElementById('stat-opt-mse').textContent = opt.mse.toFixed(3);
+}
+
+// ═══════════════════════════════════════════════
+// LOSS SURFACE (MSE as a function of slope, intercept)
+// ═══════════════════════════════════════════════
+const LS_W = 700, LS_H = 280;
+const LS_PAD_L = 50, LS_PAD_R = 16, LS_PAD_T = 16, LS_PAD_B = 36;
+const LS_INNER_W = LS_W - LS_PAD_L - LS_PAD_R;
+const LS_INNER_H = LS_H - LS_PAD_T - LS_PAD_B;
+const LS_M_DOMAIN = [-3, 3];      // slope range
+const LS_B_DOMAIN = [-2, 10];     // intercept range
+const LS_RES_X = 60;              // grid samples horizontally
+const LS_RES_Y = 36;              // grid samples vertically
+
+function lsM2px(m) { return LS_PAD_L + ((m - LS_M_DOMAIN[0]) / (LS_M_DOMAIN[1] - LS_M_DOMAIN[0])) * LS_INNER_W; }
+function lsB2py(b) { return LS_H - LS_PAD_B - ((b - LS_B_DOMAIN[0]) / (LS_B_DOMAIN[1] - LS_B_DOMAIN[0])) * LS_INNER_H; }
+
+function mseAt(m, b) {
+    const n = state.data.length;
+    let sumSq = 0;
+    for (const d of state.data) {
+        const e = d.y - (m * d.x + b);
+        sumSq += e * e;
+    }
+    return sumSq / n;
+}
+
+let lossSurfaceFieldGroup = null; // cached SVG <g> with heatmap + contours + axes
+let lossSurfaceFieldKey = ''; // invalidation key: dataset + theme
+
+function renderLossSurfaceMarkersOnly() {
+    const svg = document.getElementById('loss-surface');
+    if (!svg) return;
+    // Remove existing markers group
+    const existing = svg.querySelector('[data-role="ls-markers"]');
+    if (existing) existing.remove();
+    const g = svgEl('g', { 'data-role': 'ls-markers' });
+
+    // Optimum marker
+    const opt = closedFormFit();
+    if (opt.m >= LS_M_DOMAIN[0] && opt.m <= LS_M_DOMAIN[1] &&
+        opt.b >= LS_B_DOMAIN[0] && opt.b <= LS_B_DOMAIN[1]) {
+        const ox = lsM2px(opt.m);
+        const oy = lsB2py(opt.b);
+        g.appendChild(svgEl('circle', {
+            cx: ox, cy: oy, r: 6,
+            fill: 'none', stroke: css('--line-color'), 'stroke-width': 2
+        }));
+        g.appendChild(svgEl('circle', {
+            cx: ox, cy: oy, r: 2.5, fill: css('--line-color')
+        }));
+    }
+    // Current marker
+    const cm = clamp(state.slope, LS_M_DOMAIN[0], LS_M_DOMAIN[1]);
+    const cb = clamp(state.intercept, LS_B_DOMAIN[0], LS_B_DOMAIN[1]);
+    const cx = lsM2px(cm);
+    const cy = lsB2py(cb);
+    g.appendChild(svgEl('circle', {
+        cx, cy, r: 8, fill: 'none',
+        stroke: css('--point-color'), 'stroke-width': 2.5, opacity: 0.4
+    }));
+    g.appendChild(svgEl('circle', {
+        cx, cy, r: 4, fill: css('--point-color')
+    }));
+    svg.appendChild(g);
+}
+
+function renderLossSurface() {
+    const svg = document.getElementById('loss-surface');
+    if (!svg) return;
+    const theme = document.documentElement.getAttribute('data-theme') || 'light';
+    const key = state.dataset + '|' + theme;
+    // Use cached field if dataset+theme unchanged; just redraw markers
+    if (key === lossSurfaceFieldKey && lossSurfaceFieldGroup) {
+        renderLossSurfaceMarkersOnly();
+        return;
+    }
+    svg.innerHTML = '';
+    lossSurfaceFieldKey = key;
+
+    // Sample MSE on a grid
+    const grid = [];
+    let zMin = Infinity, zMax = -Infinity;
+    for (let j = 0; j < LS_RES_Y; j++) {
+        const row = [];
+        const b = LS_B_DOMAIN[0] + (j / (LS_RES_Y - 1)) * (LS_B_DOMAIN[1] - LS_B_DOMAIN[0]);
+        for (let i = 0; i < LS_RES_X; i++) {
+            const m = LS_M_DOMAIN[0] + (i / (LS_RES_X - 1)) * (LS_M_DOMAIN[1] - LS_M_DOMAIN[0]);
+            const z = mseAt(m, b);
+            row.push(z);
+            if (z < zMin) zMin = z;
+            if (z > zMax) zMax = z;
+        }
+        grid.push(row);
+    }
+    // Compress dynamic range with sqrt for nicer contours
+    const norm = (z) => {
+        if (zMax === zMin) return 0;
+        return Math.sqrt((z - zMin) / (zMax - zMin));
+    };
+
+    // Render heatmap as small rectangles
+    const cellW = LS_INNER_W / (LS_RES_X - 1);
+    const cellH = LS_INNER_H / (LS_RES_Y - 1);
+    const accentRGB = '6, 182, 212'; // line-color base for cyan; we'll use accent for warm gradient
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    for (let j = 0; j < LS_RES_Y - 1; j++) {
+        for (let i = 0; i < LS_RES_X - 1; i++) {
+            // Average of 4 corners
+            const z = (grid[j][i] + grid[j][i + 1] + grid[j + 1][i] + grid[j + 1][i + 1]) / 4;
+            const t = norm(z); // 0 = low loss, 1 = high loss
+            // Color: low-loss = bright accent, high-loss = faded background
+            const alpha = isDark ? (0.05 + (1 - t) * 0.55) : (0.04 + (1 - t) * 0.5);
+            const m = LS_M_DOMAIN[0] + (i / (LS_RES_X - 1)) * (LS_M_DOMAIN[1] - LS_M_DOMAIN[0]);
+            const b = LS_B_DOMAIN[0] + (j / (LS_RES_Y - 1)) * (LS_B_DOMAIN[1] - LS_B_DOMAIN[0]);
+            svg.appendChild(svgEl('rect', {
+                x: lsM2px(m), y: lsB2py(b) - cellH,
+                width: cellW + 0.5, height: cellH + 0.5,
+                fill: `rgba(245, 158, 11, ${alpha.toFixed(3)})`,
+                'shape-rendering': 'crispEdges'
+            }));
+        }
+    }
+
+    // Contour lines (iso-MSE) — draw a few level sets
+    const contourLevels = [0.05, 0.12, 0.25, 0.45, 0.7];
+    const strokeColor = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)';
+    for (const lvl of contourLevels) {
+        // Marching squares (simplified): segment per cell where it crosses the level
+        for (let j = 0; j < LS_RES_Y - 1; j++) {
+            for (let i = 0; i < LS_RES_X - 1; i++) {
+                const corners = [
+                    norm(grid[j][i]),
+                    norm(grid[j][i + 1]),
+                    norm(grid[j + 1][i + 1]),
+                    norm(grid[j + 1][i])
+                ];
+                // Find segments where two adjacent corners straddle the level
+                const m0 = LS_M_DOMAIN[0] + (i / (LS_RES_X - 1)) * (LS_M_DOMAIN[1] - LS_M_DOMAIN[0]);
+                const m1 = LS_M_DOMAIN[0] + ((i + 1) / (LS_RES_X - 1)) * (LS_M_DOMAIN[1] - LS_M_DOMAIN[0]);
+                const b0 = LS_B_DOMAIN[0] + (j / (LS_RES_Y - 1)) * (LS_B_DOMAIN[1] - LS_B_DOMAIN[0]);
+                const b1 = LS_B_DOMAIN[0] + ((j + 1) / (LS_RES_Y - 1)) * (LS_B_DOMAIN[1] - LS_B_DOMAIN[0]);
+                const pts = [
+                    { px: lsM2px(m0), py: lsB2py(b0), v: corners[0] },
+                    { px: lsM2px(m1), py: lsB2py(b0), v: corners[1] },
+                    { px: lsM2px(m1), py: lsB2py(b1), v: corners[2] },
+                    { px: lsM2px(m0), py: lsB2py(b1), v: corners[3] }
+                ];
+                const crossings = [];
+                for (let k = 0; k < 4; k++) {
+                    const a = pts[k], b = pts[(k + 1) % 4];
+                    if ((a.v < lvl && b.v >= lvl) || (a.v >= lvl && b.v < lvl)) {
+                        const t = (lvl - a.v) / (b.v - a.v);
+                        crossings.push({
+                            x: a.px + t * (b.px - a.px),
+                            y: a.py + t * (b.py - a.py)
+                        });
+                    }
+                }
+                if (crossings.length === 2) {
+                    svg.appendChild(svgEl('line', {
+                        x1: crossings[0].x, y1: crossings[0].y,
+                        x2: crossings[1].x, y2: crossings[1].y,
+                        stroke: strokeColor, 'stroke-width': 0.8
+                    }));
+                }
+            }
+        }
+    }
+
+    // Axes
+    const axisColor = css('--axis-color');
+    svg.appendChild(svgEl('line', {
+        x1: LS_PAD_L, y1: LS_H - LS_PAD_B, x2: LS_W - LS_PAD_R, y2: LS_H - LS_PAD_B,
+        stroke: axisColor, 'stroke-width': 1
+    }));
+    svg.appendChild(svgEl('line', {
+        x1: LS_PAD_L, y1: LS_PAD_T, x2: LS_PAD_L, y2: LS_H - LS_PAD_B,
+        stroke: axisColor, 'stroke-width': 1
+    }));
+
+    // Tick labels
+    const textColor = css('--text-tertiary');
+    for (let m = -3; m <= 3; m += 1) {
+        const tx = svgEl('text', {
+            x: lsM2px(m), y: LS_H - LS_PAD_B + 14,
+            'text-anchor': 'middle',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': 10, fill: textColor
+        });
+        tx.textContent = m;
+        svg.appendChild(tx);
+    }
+    for (let b = -2; b <= 10; b += 2) {
+        const ty = svgEl('text', {
+            x: LS_PAD_L - 8, y: lsB2py(b) + 3,
+            'text-anchor': 'end',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': 10, fill: textColor
+        });
+        ty.textContent = b;
+        svg.appendChild(ty);
+    }
+    const xLabel = svgEl('text', {
+        x: LS_W - LS_PAD_R, y: LS_H - 6,
+        'text-anchor': 'end',
+        'font-family': "'JetBrains Mono', monospace",
+        'font-size': 10, fill: textColor
+    });
+    xLabel.textContent = 'slope (m)';
+    svg.appendChild(xLabel);
+    const yLabel = svgEl('text', {
+        x: LS_PAD_L - 8, y: LS_PAD_T + 8,
+        'text-anchor': 'end',
+        'font-family': "'JetBrains Mono', monospace",
+        'font-size': 10, fill: textColor
+    });
+    yLabel.textContent = 'intercept (b)';
+    svg.appendChild(yLabel);
+
+    // Mark as cached and draw markers on top
+    lossSurfaceFieldGroup = true;
+    renderLossSurfaceMarkersOnly();
 }
 
 // ═══════════════════════════════════════════════
