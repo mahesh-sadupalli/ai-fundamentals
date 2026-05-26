@@ -345,6 +345,42 @@
         }
         .toggle-switch.on::after { transform: translateX(16px); }
 
+        /* ========== Stats ========== */
+        .stats-section {
+            border-top: 1px solid var(--border-light);
+            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .stats-section h3 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin: 0 0 0.3rem;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.84rem;
+            padding: 0.15rem 0;
+        }
+        .stat-row .label {
+            color: var(--text-secondary);
+        }
+        .stat-row .num {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .stat-row .num.accent { color: var(--accent); }
+        .stat-row.optimal .num { color: var(--text-tertiary); font-style: italic; }
+
         /* ========== Responsive ========== */
         @media (max-width: 960px) {
             .main-grid { grid-template-columns: 1fr; }
@@ -424,6 +460,38 @@
                 </div>
 
                 <button class="reset-btn" id="reset-btn">&#8634; Reset Line</button>
+
+                <div class="stats-section">
+                    <h3>Loss Metrics</h3>
+                    <div class="stat-row">
+                        <span class="label">MSE</span>
+                        <span class="num accent" id="stat-mse">&mdash;</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">RMSE</span>
+                        <span class="num" id="stat-rmse">&mdash;</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">R&sup2;</span>
+                        <span class="num" id="stat-r2">&mdash;</span>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <h3>Closed-form Optimum</h3>
+                    <div class="stat-row optimal">
+                        <span class="label">slope*</span>
+                        <span class="num" id="stat-opt-m">&mdash;</span>
+                    </div>
+                    <div class="stat-row optimal">
+                        <span class="label">intercept*</span>
+                        <span class="num" id="stat-opt-b">&mdash;</span>
+                    </div>
+                    <div class="stat-row optimal">
+                        <span class="label">min MSE</span>
+                        <span class="num" id="stat-opt-mse">&mdash;</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -697,6 +765,7 @@ function renderPlot() {
 
     // Keep slider UI in sync with state (handles drag updates too)
     syncSlidersToState();
+    updateStatsUI();
 }
 
 // ═══════════════════════════════════════════════
@@ -755,6 +824,65 @@ function clientToSvg(svg, clientX, clientY) {
     return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// ═══════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════
+function computeStats() {
+    const n = state.data.length;
+    let sumSq = 0;
+    let sumY = 0;
+    for (const d of state.data) {
+        const yHat = state.slope * d.x + state.intercept;
+        const err = d.y - yHat;
+        sumSq += err * err;
+        sumY += d.y;
+    }
+    const meanY = sumY / n;
+    let ssTot = 0;
+    for (const d of state.data) {
+        const dy = d.y - meanY;
+        ssTot += dy * dy;
+    }
+    const mse = sumSq / n;
+    const rmse = Math.sqrt(mse);
+    const r2 = ssTot === 0 ? 1 : 1 - sumSq / ssTot;
+    return { mse, rmse, r2 };
+}
+
+function closedFormFit() {
+    // OLS: m = cov(x,y) / var(x); b = mean(y) - m * mean(x)
+    const n = state.data.length;
+    let sumX = 0, sumY = 0;
+    for (const d of state.data) { sumX += d.x; sumY += d.y; }
+    const mx = sumX / n;
+    const my = sumY / n;
+    let num = 0, den = 0;
+    for (const d of state.data) {
+        num += (d.x - mx) * (d.y - my);
+        den += (d.x - mx) * (d.x - mx);
+    }
+    const m = den === 0 ? 0 : num / den;
+    const b = my - m * mx;
+    // Min MSE at this fit
+    let sumSq = 0;
+    for (const d of state.data) {
+        const e = d.y - (m * d.x + b);
+        sumSq += e * e;
+    }
+    return { m, b, mse: sumSq / n };
+}
+
+function updateStatsUI() {
+    const s = computeStats();
+    document.getElementById('stat-mse').textContent = s.mse.toFixed(3);
+    document.getElementById('stat-rmse').textContent = s.rmse.toFixed(3);
+    document.getElementById('stat-r2').textContent = s.r2.toFixed(3);
+    const opt = closedFormFit();
+    document.getElementById('stat-opt-m').textContent = opt.m.toFixed(3);
+    document.getElementById('stat-opt-b').textContent = opt.b.toFixed(3);
+    document.getElementById('stat-opt-mse').textContent = opt.mse.toFixed(3);
+}
 
 // ═══════════════════════════════════════════════
 // CONTROLS
