@@ -313,6 +313,37 @@
             color: var(--accent);
             background: var(--accent-light);
         }
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+        }
+        .toggle-switch.on { background: var(--accent); }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .toggle-switch.on::after { transform: translateX(16px); }
 
         /* ========== Responsive ========== */
         @media (max-width: 960px) {
@@ -380,6 +411,16 @@
                         <button class="dataset-btn" data-dataset="outliers">Outliers</button>
                         <button class="dataset-btn" data-dataset="negative">Negative</button>
                     </div>
+                </div>
+
+                <div class="toggle-row">
+                    <span>Show residuals</span>
+                    <div class="toggle-switch on" id="residuals-toggle" role="switch" aria-checked="true" tabindex="0"></div>
+                </div>
+
+                <div class="toggle-row">
+                    <span>Show squared errors</span>
+                    <div class="toggle-switch" id="squares-toggle" role="switch" aria-checked="false" tabindex="0"></div>
                 </div>
 
                 <button class="reset-btn" id="reset-btn">&#8634; Reset Line</button>
@@ -490,7 +531,9 @@ let state = {
     dataset: 'linear',
     data: DATASETS.linear(),
     slope: 0.5,
-    intercept: 2.0
+    intercept: 2.0,
+    showResiduals: true,
+    showSquares: false
 };
 
 // ═══════════════════════════════════════════════
@@ -573,6 +616,42 @@ function renderPlot() {
     });
     yLabel.textContent = 'y';
     svg.appendChild(yLabel);
+
+    // Residuals: vertical segments from points to the line, optional squared-error boxes
+    const residualColor = css('--residual-color');
+    if (state.showSquares) {
+        // Pixels per data unit (uniform so squares are visually square)
+        const pxPerUnitX = INNER_W / (X_DOMAIN[1] - X_DOMAIN[0]);
+        for (const d of state.data) {
+            const yHat = state.slope * d.x + state.intercept;
+            const err = d.y - yHat;
+            if (err === 0) continue;
+            // Side of the square = |err| (in data units), drawn on the side of the line opposite the point
+            const sidePx = Math.abs(err) * pxPerUnitX;
+            const pyPoint = y2py(d.y);
+            const pyLine = y2py(yHat);
+            const pxPoint = x2px(d.x);
+            // Square extends horizontally from the residual line outward (always to the right for visibility)
+            const sqX = pxPoint;
+            const sqY = Math.min(pyPoint, pyLine);
+            svg.appendChild(svgEl('rect', {
+                x: sqX, y: sqY, width: sidePx, height: Math.abs(pyPoint - pyLine),
+                fill: residualColor, opacity: 0.15,
+                stroke: residualColor, 'stroke-width': 0.8, 'stroke-opacity': 0.4
+            }));
+        }
+    }
+    if (state.showResiduals) {
+        for (const d of state.data) {
+            const yHat = state.slope * d.x + state.intercept;
+            svg.appendChild(svgEl('line', {
+                x1: x2px(d.x), y1: y2py(d.y),
+                x2: x2px(d.x), y2: y2py(yHat),
+                stroke: residualColor, 'stroke-width': 1.5,
+                'stroke-dasharray': '3 3', opacity: 0.65
+            }));
+        }
+    }
 
     // Line: y = slope * x + intercept, clipped to domain
     const lineColor = css('--line-color');
@@ -718,6 +797,22 @@ function wireControls() {
         syncSlidersToState();
         renderPlot();
     });
+
+    function wireToggle(id, key) {
+        const el = document.getElementById(id);
+        const flip = () => {
+            state[key] = !state[key];
+            el.classList.toggle('on', state[key]);
+            el.setAttribute('aria-checked', state[key] ? 'true' : 'false');
+            renderPlot();
+        };
+        el.addEventListener('click', flip);
+        el.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+        });
+    }
+    wireToggle('residuals-toggle', 'showResiduals');
+    wireToggle('squares-toggle', 'showSquares');
 }
 
 // ═══════════════════════════════════════════════
