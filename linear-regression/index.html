@@ -313,6 +313,32 @@
             color: var(--accent);
             background: var(--accent-light);
         }
+        .fit-btn {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 0.55rem 1rem;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--accent);
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        .fit-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        .fit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .fit-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
         .toggle-row {
             display: flex;
             align-items: center;
@@ -459,7 +485,10 @@
                     <div class="toggle-switch" id="squares-toggle" role="switch" aria-checked="false" tabindex="0"></div>
                 </div>
 
-                <button class="reset-btn" id="reset-btn">&#8634; Reset Line</button>
+                <div class="fit-row">
+                    <button class="fit-btn" id="fit-btn">&#9654; Auto-Fit</button>
+                    <button class="reset-btn" id="reset-btn">&#8634; Reset</button>
+                </div>
 
                 <div class="stats-section">
                     <h3>Loss Metrics</h3>
@@ -601,7 +630,9 @@ let state = {
     slope: 0.5,
     intercept: 2.0,
     showResiduals: true,
-    showSquares: false
+    showSquares: false,
+    fitting: false,
+    fitFrame: 0
 };
 
 // ═══════════════════════════════════════════════
@@ -885,6 +916,77 @@ function updateStatsUI() {
 }
 
 // ═══════════════════════════════════════════════
+// GRADIENT DESCENT (animated auto-fit)
+// MSE(m,b) = (1/n) Σ (y - (m·x + b))²
+// ∂/∂m = -(2/n) Σ x·(y - (m·x + b))
+// ∂/∂b = -(2/n) Σ   (y - (m·x + b))
+// ═══════════════════════════════════════════════
+function mseGradient(m, b) {
+    const n = state.data.length;
+    let gm = 0, gb = 0;
+    for (const d of state.data) {
+        const err = d.y - (m * d.x + b);
+        gm += -2 * d.x * err;
+        gb += -2 * err;
+    }
+    return [gm / n, gb / n];
+}
+
+let fitAnimId = null;
+
+function startAutoFit() {
+    if (state.fitting) return;
+    state.fitting = true;
+    state.fitFrame = 0;
+    const fitBtn = document.getElementById('fit-btn');
+    fitBtn.disabled = true;
+    fitBtn.textContent = 'Fitting...';
+
+    // Normalize x for stable gradient descent — pick lr based on x-range
+    const lr = 0.012;
+    const opt = closedFormFit();
+
+    function step() {
+        // Stop conditions: close to optimum or too many iterations
+        const dm = state.slope - opt.m;
+        const db = state.intercept - opt.b;
+        const dist = Math.sqrt(dm * dm + db * db);
+        if (dist < 0.01 || state.fitFrame > 600) {
+            // Snap to optimum on finish
+            state.slope = opt.m;
+            state.intercept = opt.b;
+            stopAutoFit();
+            renderPlot();
+            return;
+        }
+
+        // Take a few GD steps per frame so animation feels brisk
+        for (let i = 0; i < 3; i++) {
+            const [gm, gb] = mseGradient(state.slope, state.intercept);
+            state.slope -= lr * gm;
+            state.intercept -= lr * gb;
+            state.slope = clamp(state.slope, -5, 12);
+            state.intercept = clamp(state.intercept, -10, 15);
+        }
+        state.fitFrame++;
+        renderPlot();
+        fitAnimId = requestAnimationFrame(step);
+    }
+    fitAnimId = requestAnimationFrame(step);
+}
+
+function stopAutoFit() {
+    state.fitting = false;
+    if (fitAnimId) {
+        cancelAnimationFrame(fitAnimId);
+        fitAnimId = null;
+    }
+    const fitBtn = document.getElementById('fit-btn');
+    fitBtn.disabled = false;
+    fitBtn.innerHTML = '&#9654; Auto-Fit';
+}
+
+// ═══════════════════════════════════════════════
 // CONTROLS
 // ═══════════════════════════════════════════════
 function syncSlidersToState() {
@@ -899,11 +1001,13 @@ function wireControls() {
     const interceptSlider = document.getElementById('intercept-slider');
 
     slopeSlider.addEventListener('input', (e) => {
+        stopAutoFit();
         state.slope = parseFloat(e.target.value);
         document.getElementById('slope-val').textContent = state.slope.toFixed(2);
         renderPlot();
     });
     interceptSlider.addEventListener('input', (e) => {
+        stopAutoFit();
         state.intercept = parseFloat(e.target.value);
         document.getElementById('intercept-val').textContent = state.intercept.toFixed(2);
         renderPlot();
@@ -912,6 +1016,7 @@ function wireControls() {
     document.getElementById('dataset-picker').addEventListener('click', (e) => {
         const btn = e.target.closest('.dataset-btn');
         if (!btn) return;
+        stopAutoFit();
         document.querySelectorAll('.dataset-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.dataset = btn.dataset.dataset;
@@ -920,11 +1025,14 @@ function wireControls() {
     });
 
     document.getElementById('reset-btn').addEventListener('click', () => {
+        stopAutoFit();
         state.slope = 0.5;
         state.intercept = 2.0;
         syncSlidersToState();
         renderPlot();
     });
+
+    document.getElementById('fit-btn').addEventListener('click', startAutoFit);
 
     function wireToggle(id, key) {
         const el = document.getElementById(id);
